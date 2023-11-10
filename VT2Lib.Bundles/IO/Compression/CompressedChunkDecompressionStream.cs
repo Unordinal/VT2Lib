@@ -64,7 +64,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
     }
 
-    public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
+    /*public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -80,7 +80,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
             return bytesFromBuffer;
 
         return ReadFromBuffer(buffer.Span[bytesFromBuffer..]) + bytesFromBuffer;
-    }
+    }*/
 
     public override void Flush()
     {
@@ -122,7 +122,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return totalBytesRead;
     }
 
-    private async ValueTask<int> FillBufferAsync(CancellationToken cancellationToken = default)
+    /*private async ValueTask<int> FillBufferAsync(CancellationToken cancellationToken = default)
     {
         Debug.Assert(_disposed == false);
         Debug.Assert(_readPos == _readLen);
@@ -142,7 +142,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         _readPos = 0;
         _readLen = totalBytesRead;
         return totalBytesRead;
-    }
+    }*/
 
     protected override void Dispose(bool disposing)
     {
@@ -154,8 +154,6 @@ internal sealed class CompressedChunkDecompressionStream : Stream
             return;
 
         _chunkReader.Dispose();
-        if (!_leaveOpen)
-            _stream.Dispose();
     }
 
     [DebuggerStepThrough]

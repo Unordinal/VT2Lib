@@ -30,7 +30,9 @@ public partial class ChunkDecompressionStreamTests
         HashDictUtil.PrepareKnownHashes();
 
         bundleName = GetPathForBundle(bundleName); // Purely so it shows up clearly in the Test Explorer.
-        var header = Bundle.ReadBundleHeader(bundleName);
+        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2X, null);
+
+        var header = Bundle.ReadBundleHeader(bundleName, decompressor);
         _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
         _output.WriteLine($"[Version {header.Version}]");
         string propsList = string.Join(", ", header.Properties.Where(p => p != IDString64.Empty));
@@ -58,8 +60,12 @@ public partial class ChunkDecompressionStreamTests
         HashDictUtil.PrepareKnownHashes();
 
         string bundleName = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\00a353ad557df55f";
+        const string compDictPath = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\compression.dictionary";
+        byte[] dictBytes = File.ReadAllBytes(compDictPath);
 
-        var header = Bundle.ReadBundleHeader(bundleName);
+        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, dictBytes);
+
+        var header = Bundle.ReadBundleHeader(bundleName, decompressor);
         _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
         _output.WriteLine($"[Version {header.Version}]");
         string propsList = string.Join(", ", header.Properties.Where(p => p != IDString64.Empty));
@@ -91,7 +97,8 @@ public partial class ChunkDecompressionStreamTests
 
         using var fs = File.OpenRead(bundleName);
         using var reader = new PrimitiveReader(fs);
-        using var decompStream = new CompressedChunkDecompressionStream(fs, numChunksToBuffer);
+        using var compChunkReader = new CompressedChunkReader(fs, true, new ZlibChunkDecompressionStrategy());
+        using var decompStream = new CompressedChunkDecompressionStream(compChunkReader, numChunksToBuffer);
 
         uint bundleVersion = reader.ReadUInt32LE();
         ulong bundleUncompressedSize = reader.ReadUInt64LE();

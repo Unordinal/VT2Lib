@@ -1,6 +1,6 @@
 ﻿namespace VT2Lib.Bundles.IO.Compression;
 
-internal interface IChunkDecompressionStrategy : IDisposable
+public interface IChunkDecompressionStrategy : IDisposable
 {
     int Decompress(ReadOnlySpan<byte> source, Span<byte> destination);
 }
