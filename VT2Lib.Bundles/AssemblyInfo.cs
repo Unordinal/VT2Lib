@@ -15,6 +15,5 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM.
 
-[assembly: Guid("f7313bde-0c0d-4b95-bf42-c2c1e810f8d5")]
-[assembly: InternalsVisibleTo("VT2Lib.Bundles")]
+[assembly: Guid("bec3ba14-33be-4e30-98f9-139132ae6f6e")]
 [assembly: InternalsVisibleTo("VT2Lib.Tests")]

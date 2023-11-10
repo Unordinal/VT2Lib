@@ -20,7 +20,7 @@ namespace VT2Lib.Bundles;
 // Not entirely sold on this being a separate class from 'Bundle'.
 public static class BundleFile
 {
-    public static Bundle Open(string bundlePath, IIDString64Provider? idStringProvider = null)
+    public static BundleOld Open(string bundlePath, IIDString64Provider? idStringProvider = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(bundlePath);
         idStringProvider ??= IDStringRepository.Shared;
@@ -67,7 +67,7 @@ public static class BundleFile
             throw new InvalidDataException("The stream does not contain enough data to be a valid bundle file.");
 
         BundleVersion version = (BundleVersion)BinaryPrimitives.ReadUInt32LittleEndian(header);
-        if (!Bundle.SupportedVersions.Contains(version))
+        if (!BundleOld.SupportedVersions.Contains(version))
             throw new InvalidDataException($"The bundle version '{version:x8}' is not supported.");
 
         long size = BinaryPrimitives.ReadInt64LittleEndian(header[4..]);
@@ -75,7 +75,7 @@ public static class BundleFile
         // otherwise, this is the bundle's resource count.
         int chunkSizeOrResCount = BinaryPrimitives.ReadInt32LittleEndian(header[12..]);
         ushort possibleZlibHeader = BinaryPrimitives.ReadUInt16BigEndian(header[16..]); // Note: the zlib (rfc 1950) header is big-endian. 0x789C.
-        bool isCompressed = possibleZlibHeader == Bundle.ZlibHeader;
+        bool isCompressed = possibleZlibHeader == BundleOld.ZlibHeader;
 
         if (isCompressed && (chunkSizeOrResCount <= 0 || chunkSizeOrResCount > 0x10000))
             throw new InvalidDataException($"Invalid first Zlib chunksize read for compressed bundle.");
@@ -85,7 +85,7 @@ public static class BundleFile
         stream.Position = 12;
 
         using Stream wrapperStream = isCompressed
-            ? new ChunkDecompressorStream(stream, Bundle.MaxChunkLength, 1, true)
+            ? new ChunkDecompressorStreamOld(stream, BundleOld.MaxChunkLength, 1, true)
             : new LeaveOpenStream(stream); // We want to autodispose the chunk decompressor stream but not the base stream, so we do this.
         using var reader = new PrimitiveReader(wrapperStream);
 
@@ -95,7 +95,7 @@ public static class BundleFile
         // It may give improvements to a possible async version, however.
         // int propsAndResDirSize = Bundle.PropertySectionSize + (BundledResourceMeta.GetSizeForBundleVersion(version) * resourceCount);
 
-        IDString64[] properties = new IDString64[Bundle.MaxPropertyCount];
+        IDString64[] properties = new IDString64[BundleOld.MaxPropertyCount];
         for (int i = 0; i < properties.Length; i++)
             properties[i] = reader.ReadIDString64(idStringProvider);
 

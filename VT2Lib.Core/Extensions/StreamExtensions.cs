@@ -7,6 +7,32 @@ namespace VT2Lib.Core.Extensions;
 
 public static class StreamExtensions
 {
+    public static void Skip(this Stream stream, long count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count));
+
+        if (stream.CanSeek)
+        {
+            if (stream.Position + count >= stream.Length)
+                throw new EndOfStreamException();
+
+            stream.Position += count;
+            return;
+        }
+
+        using StackAllocHelper<byte> buffer = count <= 256
+            ? new(stackalloc byte[(int)count])
+            : new((int)Math.Min(count, 4096));
+
+        while (count > 0)
+        {
+            int bytesToRead = (int)Math.Min(buffer.Length, count);
+            stream.ReadExactly(buffer.Span[..bytesToRead]);
+            count -= bytesToRead;
+        }
+    }
+
     public static void ReadToEnd(this Stream stream)
     {
         using RentedArray<byte> buffer = new(4096);

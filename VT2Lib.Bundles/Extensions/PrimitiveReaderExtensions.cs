@@ -7,31 +7,31 @@ namespace VT2Lib.Bundles.Extensions;
 
 internal static class PrimitiveReaderExtensions
 {
-    public static BundledResourceMeta ReadBundledResourceMeta(this PrimitiveReader reader, IIDString64Provider? idStringProvider = null)
+    public static BundledResourceMeta ReadBundledResourceMeta(this PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
     {
-        idStringProvider ??= IDStringRepository.Shared;
+        idString64Provider ??= IDStringRepository.Shared;
 
         // TODO: Check compat. with bundle versions < VT2X. Old versions are likely missing the TotalSize field.
         // (And maybe the flag field too?)
         // Use BundledResourceMeta.GetSizeForBundleVersion() and pass the version in.
         return new BundledResourceMeta
         (
-            reader.ReadResourceLocator(idStringProvider),
+            reader.ReadResourceLocator(idString64Provider),
             (BundledResourceFlag)reader.ReadUInt32LE(),
             reader.ReadUInt32LE()
         );
     }
 
-    public static BundledResource ReadBundledResource(this PrimitiveReader reader, IIDStringProvider? idStringProvider = null)
+    public static BundledResource ReadBundledResource(this PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
     {
-        idStringProvider ??= IDStringRepository.Shared;
-        var resourceLocator = reader.ReadResourceLocator(idStringProvider);
+        idString64Provider ??= IDStringRepository.Shared;
+        var resourceLocator = reader.ReadResourceLocator(idString64Provider);
         uint variantCount = reader.ReadUInt32LE();
         uint streamOffset = reader.ReadUInt32LE();
 
         var variantsMeta = new BundledResourceVariantMeta[variantCount];
         for (int i = 0; i < variantCount; i++)
-            variantsMeta[i] = BundledResourceVariantMeta.Read(reader);
+            variantsMeta[i] = reader.ReadBundledResourceVariantMeta();
 
         var variantsData = new byte[variantCount][];
         for (int i = 0; i < variantCount; i++)

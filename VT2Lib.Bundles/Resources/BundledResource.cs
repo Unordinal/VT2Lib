@@ -7,15 +7,15 @@ namespace VT2Lib.Bundles.Resources;
 // localized data (ex: strings_en.txt, strings_es.txt, strings_de.txt) (Not real files or file names, just an example.)
 // Each variant in this is an IResource on its own, this is just a 'package'. Using that name, however, would conflict
 // with Stingray's usage of the word.
-internal sealed class BundledResource
+internal sealed record class BundledResource
 {
-    public ResourceLocator ResourceLocator { get; init; }
+    public required ResourceLocator ResourceLocator { get; init; }
 
-    public uint VariantCount { get; init; }
+    public required uint VariantCount { get; init; }
 
-    public uint StreamOffset { get; init; }
+    public required uint StreamOffset { get; init; }
 
-    public BundledResourceVariantMeta[] VariantsMeta { get; init; } = Array.Empty<BundledResourceVariantMeta>();
+    public required BundledResourceVariantMeta[] VariantsMeta { get; init; }
 
-    public byte[][] VariantsData { get; init; } = Array.Empty<byte[]>();
+    public required byte[][] VariantsData { get; init; }
 }

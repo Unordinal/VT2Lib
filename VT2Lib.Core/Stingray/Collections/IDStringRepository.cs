@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -24,12 +23,12 @@ public sealed class IDStringRepository : IIDStringProvider
     /// <summary>
     /// Gets a read-only collection that contains the <see cref="IDString32"/> values in this <see cref="IDStringRepository"/>.
     /// </summary>
-    public IReadOnlyCollection<IDString32> IDString32Values => _idString32Repo.Values.AsReadOnly();
+    public IReadOnlyCollection<IDString32> IDString32Values => _idString32Repo.Values.AsReadOnlyEx();
 
     /// <summary>
     /// Gets a read-only collection that contains the <see cref="IDString64"/> values in this <see cref="IDStringRepository"/>.
     /// </summary>
-    public IReadOnlyCollection<IDString64> IDString64Values => _idString64Repo.Values.AsReadOnly();
+    public IReadOnlyCollection<IDString64> IDString64Values => _idString64Repo.Values.AsReadOnlyEx();
 
     private readonly ConcurrentDictionary<uint, IDString32> _idString32Repo;
     private readonly ConcurrentDictionary<ulong, IDString64> _idString64Repo;
@@ -52,12 +51,12 @@ public sealed class IDStringRepository : IIDStringProvider
         _idString64Repo = new ConcurrentDictionary<ulong, IDString64>(idString64Kvps);
     }
 
-    public bool ContainsID(uint id)
+    public bool Contains(uint id)
     {
         return _idString32Repo.ContainsKey(id);
     }
 
-    public bool ContainsID(ulong id)
+    public bool Contains(ulong id)
     {
         return _idString64Repo.ContainsKey(id);
     }

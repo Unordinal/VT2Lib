@@ -11,7 +11,7 @@ public interface IIDString64Provider
     /// </summary>
     /// <param name="id">The ID to lookup.</param>
     /// <returns><see langword="true"/> if this <see cref="IIDStringProvider"/> contains the specified hash value; otherwise, <see langword="false"/>.</returns>
-    bool ContainsID(ulong id);
+    bool Contains(ulong id);
 
     /// <summary>
     /// Gets the <see cref="IDString64"/> with the specified ID from this <see cref="IIDStringProvider"/>.

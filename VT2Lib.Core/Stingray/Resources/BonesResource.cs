@@ -13,4 +13,11 @@ public sealed class BonesResource : IResource
     public uint[] Lods = Array.Empty<uint>();
 
     public string[] BoneNames = Array.Empty<string>();
+
+    public IEnumerable<IDString32> GetBoneNameIDStrings()
+    {
+        bool namesAreStored = BoneNames.Length == BoneNameHashes.Length;
+        for (int i = 0; i < BoneNameHashes.Length; i++)
+            yield return new IDString32(BoneNameHashes[i], namesAreStored ? BoneNames[i] : null);
+    }
 }

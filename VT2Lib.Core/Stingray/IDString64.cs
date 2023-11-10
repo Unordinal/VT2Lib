@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using VT2Lib.Core.Stingray.Collections;
+using VT2Lib.Core.Stingray.Hashing;
 
 namespace VT2Lib.Core.Stingray;
 
@@ -10,18 +9,12 @@ namespace VT2Lib.Core.Stingray;
 /// </summary>
 /// <remarks>Reference: <see href="https://github.com/AutodeskGames/stingray-plugin/blob/master/stingray_sdk/plugin_foundation/id_string.h">id_string.h</see></remarks>
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct IDString64 : IEquatable<IDString64>, IComparable<IDString64>
+public readonly record struct IDString64 : IComparable<IDString64>
 {
     /// <summary>
     /// Gets the empty string.
     /// </summary>
     public static IDString64 Empty { get; } = new(0, string.Empty);
-
-    /// <summary>
-    /// Gets whether this is the empty string.
-    /// </summary>
-    /// <returns><see langword="true"/> if this is the empty string (<see cref="ID"/> == 0); otherwise, <see langword="false"/>.</returns>
-    public bool IsEmpty => ID == 0;
 
     /// <summary>
     /// Gets the 64-bit hash of the original string value.
@@ -61,8 +54,8 @@ public readonly struct IDString64 : IEquatable<IDString64>, IComparable<IDString
     /// <summary>
     /// Creates a new <see cref="IDString64"/> using the specified hash and string value.
     /// </summary>
-    /// <remarks>The hash is not validated for correctness unless compiled in 'Debug' and <c>VALIDATE_IDSTRING_HASHES</c> is set.</remarks>
-    /// <param name="id">The hash of the string.</param>
+    /// <remarks>The string hash is not validated for correctness unless compiled in 'Debug' mode and <c>VALIDATE_IDSTRING_HASHES</c> is defined.</remarks>
+    /// <param name="id">The murmur hash of the string.</param>
     /// <param name="value">The string value of the ID.</param>
     public IDString64(ulong id, string? value)
     {
@@ -78,33 +71,11 @@ public readonly struct IDString64 : IEquatable<IDString64>, IComparable<IDString
     /// </summary>
     /// <returns>
     ///     If <see cref="Value"/> is not <see langword="null"/>, returns <see cref="Value"/>;
-    ///     otherwise, returns <see cref="ID"/> as a 64-bit hexadecimal string.
+    ///     otherwise, returns the result of <see cref="ToIdentifier"/>.
     /// </returns>
     public override string ToString()
     {
-        return Value ?? ID.ToString("x16");
-    }
-
-    /// <summary>
-    /// Gets the string representation of this <see cref="IDString64"/>, using the given <see cref="IDStringRepository"/> to lookup the original string value.
-    /// </summary>
-    /// <param name="idStringRepo">The repository to look up the original string value in.</param>
-    /// <returns>
-    ///     If <see cref="ID"/> is found within <paramref name="idStringRepo"/>, returns the result of calling <see cref="ToString"/> on the found value;
-    ///     otherwise, returns the result of calling <see cref="ToString"/> on this instance.
-    /// </returns>
-    public string ToString(IDStringRepository? idStringRepo)
-    {
-        idStringRepo ??= IDStringRepository.Shared;
-        if (idStringRepo.TryGet(ID, out var foundValue))
-            return foundValue.ToString();
-
-        return ToString();
-    }
-
-    public override bool Equals([NotNullWhen(true)] object? obj)
-    {
-        return obj is IDString64 idString && Equals(idString);
+        return Value ?? ToIdentifier();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -134,16 +105,6 @@ public readonly struct IDString64 : IEquatable<IDString64>, IComparable<IDString
         return $"#ID[{ID:x16}]";
     }
 
-    public static bool operator ==(IDString64 left, IDString64 right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(IDString64 left, IDString64 right)
-    {
-        return !left.Equals(right);
-    }
-
     public static bool operator <(IDString64 left, IDString64 right)
     {
         return left.CompareTo(right) < 0;
@@ -165,4 +126,13 @@ public readonly struct IDString64 : IEquatable<IDString64>, IComparable<IDString
     }
 
     public static implicit operator IDString64(string value) => new(value);
+
+    /// <summary>
+    /// Gets whether the specified string is an empty string (<see cref="ID"/> == 0).
+    /// </summary>
+    /// <returns><see langword="true"/> if <paramref name="value"/> is an empty string (<see cref="ID"/> == 0); otherwise, <see langword="false"/>.</returns>
+    public static bool IsEmpty(IDString64 value)
+    {
+        return value.ID == 0;
+    }
 }

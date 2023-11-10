@@ -1,16 +1,22 @@
 ﻿using ICSharpCode.SharpZipLib.Zip.Compression;
-using System;
-using System.Collections.Generic;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VT2Lib.Core.Collections;
 
 namespace VT2Lib.Bundles;
 
-internal static class ZlibUtil
+public static class ZlibUtil
 {
+    /// <summary>
+    /// Gets the max chunk length of a Zlib chunk in a VT2 bundle.
+    /// If a chunk's length is equal to this value, it's uncompressed.
+    /// </summary>
+    public const int MaxChunkLength = 0x10000;
+
+    /// <summary>
+    /// Gets the header of a Zlib chunk in a VT2 bundle.
+    /// </summary>
+    public const short ChunkHeader = 0x789C;
+
     public static int Decompress(Inflater inflater, byte[] input, int start, int count, Span<byte> destination)
     {
         ArgumentNullException.ThrowIfNull(inflater);
@@ -45,7 +51,7 @@ internal static class ZlibUtil
             return zlibStream.ReadAtLeast(destination, destination.Length, false);
         }
     }
-    
+
     public static unsafe ValueTask<int> DecompressAsync(ReadOnlyMemory<byte> source, Memory<byte> destination, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)

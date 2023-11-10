@@ -5,13 +5,13 @@ using VT2Lib.Core.Stingray.Collections;
 
 namespace VT2Lib.Core.Stingray.Buffers;
 
-
+// Modeled after BinaryPrimitives.
 public static class StingrayStructs
 {
     public static IDString32 ReadIDString32(ReadOnlySpan<byte> source, IIDString32Provider? idStringProvider = null)
     {
-        if (source.Length < 4)
-            ThrowSpanTooSmall(nameof(IDString32), nameof(source));
+        if (source.Length < sizeof(uint))
+            ThrowSpanTooSmallExc(nameof(IDString32), nameof(source));
 
         idStringProvider ??= IDStringRepository.Shared;
         uint id = Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(source));
@@ -23,8 +23,8 @@ public static class StingrayStructs
 
     public static IDString64 ReadIDString64(ReadOnlySpan<byte> source, IIDString64Provider? idStringProvider = null)
     {
-        if (source.Length < 8)
-            ThrowSpanTooSmall(nameof(IDString64), nameof(source));
+        if (source.Length < sizeof(ulong))
+            ThrowSpanTooSmallExc(nameof(IDString64), nameof(source));
 
         idStringProvider ??= IDStringRepository.Shared;
         ulong id = Unsafe.ReadUnaligned<ulong>(ref MemoryMarshal.GetReference(source));
@@ -36,8 +36,8 @@ public static class StingrayStructs
 
     public static ResourceLocator ReadResourceLocator(ReadOnlySpan<byte> source, IIDString64Provider? idStringProvider = null)
     {
-        if (source.Length < 16)
-            ThrowSpanTooSmall(nameof(ResourceLocator), nameof(source));
+        if (source.Length < (sizeof(ulong) * 2))
+            ThrowSpanTooSmallExc(nameof(ResourceLocator), nameof(source));
 
         idStringProvider ??= IDStringRepository.Shared;
         var type = ReadIDString64(source, idStringProvider);
@@ -48,7 +48,7 @@ public static class StingrayStructs
 
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowSpanTooSmall(string typeName, string? paramName)
+    private static void ThrowSpanTooSmallExc(string typeName, string? paramName)
     {
         throw new ArgumentOutOfRangeException(paramName, $"The source span is too small to contain a valid {typeName}.");
     }

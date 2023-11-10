@@ -11,14 +11,14 @@ public sealed class ReadOnlyIDStringRepository : IIDStringProvider
         _idStringRepo = idStringRepo;
     }
 
-    public bool ContainsID(ulong id)
+    public bool Contains(ulong id)
     {
-        return _idStringRepo.ContainsID(id);
+        return _idStringRepo.Contains(id);
     }
 
-    public bool ContainsID(uint id)
+    public bool Contains(uint id)
     {
-        return _idStringRepo.ContainsID(id);
+        return _idStringRepo.Contains(id);
     }
 
     public IDString64 Get(ulong id)

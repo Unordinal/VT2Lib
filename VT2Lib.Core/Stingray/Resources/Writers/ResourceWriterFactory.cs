@@ -1,26 +1,41 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace VT2Lib.Core.Stingray.Resources.Writers;
 
 public sealed class ResourceWriterFactory
 {
-    public static ResourceWriterFactory Shared { get; } = new();
+    public static ResourceWriterFactory Shared { get; }
 
-    private readonly ConcurrentDictionary<IDString64, Func<IResourceWriter>> _factories = new();
+    private readonly ConcurrentDictionary<IDString64, Func<IResourceWriter>> _writerFactories = new();
 
-    public IResourceWriter Create(IDString64 resourceType)
+    static ResourceWriterFactory()
     {
-        if (!_factories.TryGetValue(resourceType, out var factory))
-            throw new ArgumentException($"No writer factory registered for resource type '{resourceType}'");
-
-        return factory();
+        Shared = new ResourceWriterFactory();
+        Shared.RegisterWriter(BonesResource.ResourceType, () => new BonesResourceWriter());
     }
 
-    public void RegisterFactory(IDString64 resourceType, Func<IResourceWriter> factory)
+    public IResourceWriter CreateWriter(IDString64 resourceType)
     {
-        ArgumentNullException.ThrowIfNull(factory);
+        if (!_writerFactories.TryGetValue(resourceType, out var writerFactory))
+            throw new ArgumentException($"No writer registered for resource type '{resourceType}'");
 
-        if (!_factories.TryAdd(resourceType, factory))
-            throw new ArgumentException($"A writer factory is already registered for resource type '{resourceType}'");
+        return writerFactory();
+    }
+
+    public void RegisterWriter(IDString64 resourceType, Func<IResourceWriter> writerFactory)
+    {
+        ArgumentNullException.ThrowIfNull(writerFactory);
+
+        if (!writerFactory().CanWrite(resourceType))
+            throw new ArgumentException($"The given writer cannot write the resource type '{resourceType}' it was registered for.");
+
+        if (!_writerFactories.TryAdd(resourceType, writerFactory))
+            throw new ArgumentException($"A writer is already registered for resource type '{resourceType}'");
+    }
+
+    public bool UnregisterWriter(IDString64 resourceType, [NotNullWhen(true)] out Func<IResourceWriter>? writerFactory)
+    {
+        return _writerFactories.TryRemove(resourceType, out writerFactory);
     }
 }

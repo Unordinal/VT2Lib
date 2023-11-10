@@ -14,5 +14,7 @@ public interface IResource
     /// <summary>
     /// Gets the type of resource this is as an <see cref="IDString64"/>.
     /// </summary>
-    static virtual IDString64 ResourceType => throw new NotImplementedException();
+    static abstract IDString64 ResourceType { get; }
+
+    //static virtual IDString64 ResourceType => throw new NotImplementedException();
 }

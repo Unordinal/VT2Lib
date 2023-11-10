@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace VT2Lib.Core.Collections;
 
 /// <summary>
-/// Provides easy renting and returning of an array from/to an <see cref="ArrayPool{T}"/>.
+/// Provides easy renting and returning of an array from/to a <see cref="ArrayPool{T}"/>.
 /// </summary>
 /// <remarks>
 /// Usage:
@@ -24,6 +24,18 @@ public sealed class RentedArray<T> : IDisposable
         {
             ThrowIfDisposed();
             return _rented.AsSpan(0, _length);
+        }
+    }
+
+    /// <summary>
+    /// Gets a memory over the rented array of exactly the requested length.
+    /// </summary>
+    public Memory<T> Memory
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _rented.AsMemory(0, _length);
         }
     }
 
@@ -56,24 +68,24 @@ public sealed class RentedArray<T> : IDisposable
     }
 
     /// <summary>
-    /// Gets the originally requested length of the rented array.
+    /// Gets the originally-requested length of the rented array.
     /// </summary>
     public int Length => _length;
 
     private readonly int _length;
-    private readonly ArrayPool<T> _pool;
+    private readonly ArrayPool<T> _sourcePool;
     private T[]? _rented;
 
     public RentedArray(int length) : this(length, ArrayPool<T>.Shared)
     {
     }
 
-    public RentedArray(int length, ArrayPool<T> pool)
+    public RentedArray(int length, ArrayPool<T> sourcePool)
     {
-        ArgumentNullException.ThrowIfNull(pool);
+        ArgumentNullException.ThrowIfNull(sourcePool);
         _length = length;
-        _pool = pool;
-        _rented = _pool.Rent(length);
+        _sourcePool = sourcePool;
+        _rented = _sourcePool.Rent(length);
     }
 
     public Span<T> AsSpan() => Span;
@@ -90,12 +102,27 @@ public sealed class RentedArray<T> : IDisposable
         return _rented.AsSpan(start, length);
     }
 
-    public Memory<T> AsMemory() => new(RawArrayUnsafe, 0, _length);
+    public Memory<T> AsMemory()
+    {
+        ThrowIfDisposed();
+        return _rented.AsMemory(0, _length);
+    }
 
-    public Memory<T> AsMemory(int start) => new(RawArrayUnsafe, start, _length - start);
+    public Memory<T> AsMemory(int start)
+    {
+        ThrowIfDisposed();
+        return _rented.AsMemory(start, _length - start);
+    }
 
-    public Memory<T> AsMemory(int start, int length) => new(RawArrayUnsafe, start, length);
+    public Memory<T> AsMemory(int start, int length) 
+    {
+        ThrowIfDisposed();
+        return _rented.AsMemory(start, length);
+    }
 
+    /// <summary>
+    /// Disposes the rented array and returns it to the source array pool.
+    /// </summary>
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
@@ -110,7 +137,7 @@ public sealed class RentedArray<T> : IDisposable
             var rented = Interlocked.Exchange(ref _rented, null);
             if (disposing && rented is not null)
             {
-                _pool.Return(rented);
+                _sourcePool.Return(rented);
             }
         }
     }

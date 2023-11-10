@@ -1,4 +1,4 @@
-﻿using VT2Lib.Core.Stingray;
+﻿using VT2Lib.Core.Stingray.Hashing;
 using Xunit.Abstractions;
 
 namespace VT2Lib.Tests.Core;

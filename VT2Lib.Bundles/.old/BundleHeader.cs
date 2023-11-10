@@ -26,16 +26,17 @@ public sealed class BundleHeader
     public required int ResourceCount { get; init; }
 
     /// <summary>
-    /// Gets a list of the bundle's properties.
+    /// Gets the bundle's properties.
     /// </summary>
     public required IReadOnlyList<IDString64> Properties { get; init; }
 
     /// <summary>
     /// Gets a list of metadata about each resource in the bundle.
     /// </summary>
-    public required IReadOnlyList<BundledResourceMeta> ResourceMetas { get; init; }
+    public required IReadOnlyList<BundledResourceMeta> ResourceList { get; init; }
 
     internal BundleHeader()
     {
+
     }
 }

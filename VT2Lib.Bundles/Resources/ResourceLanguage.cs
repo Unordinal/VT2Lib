@@ -2,6 +2,7 @@
 
 // TODO: This almost seems like a flags value; unsure what exactly the deal is with this.
 // Been a while, but iirc this seemed to change for the same language for some files.
+// FIXME: Needs verification.
 public enum ResourceLanguage : uint
 {
     English = 0,

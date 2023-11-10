@@ -27,6 +27,11 @@ internal readonly ref struct StackAllocHelper<T>
     /// </summary>
     public Span<T> Span => _span;
 
+    /// <summary>
+    /// Gets the length of the span.
+    /// </summary>
+    public int Length => _span.Length;
+
     private readonly Span<T> _span;
     private readonly ArrayPool<T>? _sourcePool;
     private readonly T[]? _rented;

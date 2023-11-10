@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
-namespace VT2Lib.Core.Stingray;
+namespace VT2Lib.Core.Stingray.Hashing;
 
 /// <summary>
 /// Provides methods relating to Murmur2 hashing. Uses Murmur64A.
@@ -36,9 +36,10 @@ public static class Murmur
     {
         ArgumentNullException.ThrowIfNull(key);
 
+        const int MaxAllocSize = 256;
         var source = key.AsSpan();
         int destLength = (source.Length + 1) * 3; // The worst case scenario for 'UTF-16' -> 'UTF-8'.
-        using StackAllocHelper<byte> buffer = destLength <= 256
+        using StackAllocHelper<byte> buffer = destLength <= MaxAllocSize
                                             ? new(stackalloc byte[destLength])
                                             : new(destLength);
 
@@ -90,7 +91,7 @@ public static class Murmur
         const int R = 47;
 
         int length = key.Length;
-        ulong h = seed ^ ((ulong)key.Length * M);
+        ulong h = seed ^ (ulong)key.Length * M;
 
         // Is this better or worse than &MemoryMarshal.GetReference(key)?
         // IIRC GetRef always returns a non-null pointer even on empty spans - is that desired?
@@ -98,7 +99,7 @@ public static class Murmur
         fixed (byte* pKey = key)
         {
             ulong* pData = (ulong*)pKey;
-            ulong* pEnd = pData + (length / sizeof(ulong));
+            ulong* pEnd = pData + length / sizeof(ulong);
 
             while (pData != pEnd)
             {

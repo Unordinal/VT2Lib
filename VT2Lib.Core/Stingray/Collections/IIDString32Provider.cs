@@ -11,7 +11,7 @@ public interface IIDString32Provider
     /// </summary>
     /// <param name="id">The ID to lookup.</param>
     /// <returns><see langword="true"/> if this <see cref="IIDStringProvider"/> contains the specified hash value; otherwise, <see langword="false"/>.</returns>
-    bool ContainsID(uint id);
+    bool Contains(uint id);
 
     /// <summary>
     /// Gets the <see cref="IDString32"/> with the specified ID from this <see cref="IIDStringProvider"/>.
