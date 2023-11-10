@@ -17,7 +17,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
     private bool _disposed;
 
     private readonly RentedArray<byte> _buffer;
-    private readonly int _numChunksToBuffer;
+    private readonly int _numChunksToBuffer; // Not sure about this one. We probably don't really need to buffer.
     private int _readPos;
     private int _readLen;
 

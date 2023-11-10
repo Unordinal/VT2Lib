@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-using System.Numerics;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using VT2Lib.Bundles;
-using VT2Lib.Bundles.IO;
 using VT2Lib.Bundles.IO.Compression;
 using VT2Lib.Core.Collections;
 using VT2Lib.Core.IO;
@@ -15,6 +12,7 @@ namespace VT2Lib.Tests.Bundles.IO;
 public partial class ChunkDecompressionStreamTests
 {
     private static readonly string TestBundleFilesPath = Path.Combine(ProjectSource.ProjectDirectory, @"TestFiles\Bundles\");
+    private static readonly string CompressionDictPath = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\compression.dictionary";
 
     private readonly ITestOutputHelper _output;
 
@@ -35,6 +33,7 @@ public partial class ChunkDecompressionStreamTests
         var header = Bundle.ReadBundleHeader(bundleName, decompressor);
         _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
         _output.WriteLine($"[Version {header.Version}]");
+
         string propsList = string.Join(", ", header.Properties.Where(p => p != IDString64.Empty));
         _output.WriteLine($"[{header.Properties.Count} properties: [{propsList}]]");
 
@@ -60,9 +59,8 @@ public partial class ChunkDecompressionStreamTests
         HashDictUtil.PrepareKnownHashes();
 
         string bundleName = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\00a353ad557df55f";
-        const string compDictPath = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\compression.dictionary";
 
-        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, compDictPath);
+        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, CompressionDictPath);
 
         var header = Bundle.ReadBundleHeader(bundleName, decompressor);
         _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
@@ -87,8 +85,8 @@ public partial class ChunkDecompressionStreamTests
     }
 
     [Theory]
-    [MemberDataWithInline(nameof(ReadTestBundleFiles), 1)]
-    [MemberDataWithInline(nameof(ReadTestBundleFiles), 50)]
+    [MemberDataWithInline(nameof(ReadTestBundleFiles), 2)]
+    [MemberDataWithInline(nameof(ReadTestBundleFiles), 8)]
     public void CDS_ReadBundlesChunks(string bundleName, int numChunksToBuffer)
     {
         //_output.WriteLine("Reading bundle " + bundleName);
@@ -96,7 +94,7 @@ public partial class ChunkDecompressionStreamTests
 
         using var fs = File.OpenRead(bundleName);
         using var reader = new PrimitiveReader(fs);
-        using var compChunkReader = new CompressedChunkReader(fs, true, new ZlibChunkDecompressionStrategy());
+        using var compChunkReader = new CompressedChunkReader(fs, true, new ZlibChunkDecompressor());
         using var decompStream = new CompressedChunkDecompressionStream(compChunkReader, numChunksToBuffer);
 
         uint bundleVersion = reader.ReadUInt32LE();

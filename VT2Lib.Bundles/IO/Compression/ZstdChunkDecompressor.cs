@@ -2,16 +2,16 @@
 
 namespace VT2Lib.Bundles.IO.Compression;
 
-internal class ZstdChunkDecompressionStrategy : IChunkDecompressionStrategy
+internal class ZstdChunkDecompressor : IChunkDecompressor
 {
     private readonly Decompressor _decompressor;
 
-    public ZstdChunkDecompressionStrategy()
+    public ZstdChunkDecompressor()
     {
         _decompressor = new Decompressor();
     }
 
-    public ZstdChunkDecompressionStrategy(ReadOnlySpan<byte> dictionary)
+    public ZstdChunkDecompressor(ReadOnlySpan<byte> dictionary)
     {
         _decompressor = new Decompressor();
         _decompressor.LoadDictionary(dictionary);

@@ -1,8 +1,8 @@
 ﻿namespace VT2Lib.Bundles.IO.Compression;
 
-internal class ZlibChunkDecompressionStrategy : IChunkDecompressionStrategy
+internal class ZlibChunkDecompressor : IChunkDecompressor
 {
-    public ZlibChunkDecompressionStrategy()
+    public ZlibChunkDecompressor()
     {
     }
 

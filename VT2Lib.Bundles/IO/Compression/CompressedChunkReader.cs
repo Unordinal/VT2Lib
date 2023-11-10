@@ -9,13 +9,13 @@ internal class CompressedChunkReader : ICompressedChunkReader
 {
     protected readonly Stream _stream;
     protected readonly bool _leaveOpen;
-    protected readonly IChunkDecompressionStrategy _decompressor;
+    protected readonly IChunkDecompressor _decompressor;
 
     protected int? _chunkCount;
     protected readonly List<long> _chunkOffsets = new();
     protected bool _disposed;
 
-    public CompressedChunkReader(Stream stream, bool leaveOpen, IChunkDecompressionStrategy decompressor)
+    public CompressedChunkReader(Stream stream, bool leaveOpen, IChunkDecompressor decompressor)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(decompressor);

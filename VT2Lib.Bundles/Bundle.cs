@@ -1,6 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using VT2Lib.Bundles.Extensions;
 using VT2Lib.Bundles.IO;
 using VT2Lib.Bundles.IO.Compression;
@@ -85,25 +86,28 @@ public sealed class Bundle : IDisposable
 
     #region Static Methods
 
-    public static IChunkDecompressionStrategy GetDecompressorForVersion(BundleVersion version, string? compressionDictionaryPath)
+    public static IChunkDecompressor GetDecompressorForVersion(BundleVersion version, string? compressionDictionaryPath)
     {
         return version switch
         {
             BundleVersion.VT2XC => GetZstdDecompressionStrategy(),
-            >= BundleVersion.VT1 and < BundleVersion.VT2XC => new ZlibChunkDecompressionStrategy(),
+            >= BundleVersion.VT1 and < BundleVersion.VT2XC => new ZlibChunkDecompressor(),
             _ => throw new ArgumentOutOfRangeException($"Unsupported bundle version '{(int)version:X8}'")
         };
 
-        IChunkDecompressionStrategy GetZstdDecompressionStrategy()
+        IChunkDecompressor GetZstdDecompressionStrategy()
         {
             if (compressionDictionaryPath is null)
-                throw new ArgumentException($"Must provide a Zstd decompression dictionary for bundle versions '{BundleVersion.VT2XC}' and above.");
+                throw new ArgumentException($"Must provide a Zstd compression dictionary for bundle versions '{BundleVersion.VT2XC}' and above.");
 
-            return new ZstdChunkDecompressionStrategy(File.ReadAllBytes(compressionDictionaryPath));
+            return new ZstdChunkDecompressor(File.ReadAllBytes(compressionDictionaryPath));
         }
     }
 
-    public static Bundle OpenBundle(string bundlePath, IChunkDecompressionStrategy decompressor, IIDString64Provider? idString64Provider = null)
+    // TODO: Allow opening a bundle without getting an IChunkDecompressor first.
+    // Do this by taking in a string or Span<byte> to a compression dictionary, and in the method
+    // that takes a string bundlePath, allow not specifying one to search the bundle's path automatically.
+    public static Bundle OpenBundle(string bundlePath, IChunkDecompressor decompressor, IIDString64Provider? idString64Provider = null)
     {
         ArgumentNullException.ThrowIfNull(bundlePath);
         using var fs = File.OpenRead(bundlePath);
@@ -111,13 +115,13 @@ public sealed class Bundle : IDisposable
         return CoreOpenBundle(fs, decompressor, null, idString64Provider);
     }
 
-    public static Bundle OpenBundle(Stream bundleStream, IChunkDecompressionStrategy decompressor, Stream? bundleAssetStream = null, IIDString64Provider? idString64Provider = null)
+    public static Bundle OpenBundle(Stream bundleStream, IChunkDecompressor decompressor, Stream? bundleAssetStream = null, IIDString64Provider? idString64Provider = null)
     {
         ArgumentNullException.ThrowIfNull(bundleStream);
         return CoreOpenBundle(bundleStream, decompressor, bundleAssetStream, idString64Provider);
     }
 
-    private static Bundle CoreOpenBundle(Stream bundleStream, IChunkDecompressionStrategy decompressor, Stream? bundleAssetStream, IIDString64Provider? idString64Provider)
+    private static Bundle CoreOpenBundle(Stream bundleStream, IChunkDecompressor decompressor, Stream? bundleAssetStream, IIDString64Provider? idString64Provider)
     {
         Debug.Assert(bundleStream is not null);
         idString64Provider ??= IDStringRepository.Shared;
@@ -172,7 +176,7 @@ public sealed class Bundle : IDisposable
     /// <param name="bundlePath">The path to the bundle file.</param>
     /// <param name="idString64Provider">The <see cref="IIDString64Provider"/> to use for looking up string hashes within the bundle header.</param>
     /// <returns>The bundle header that was read.</returns>
-    public static BundleHeader ReadBundleHeader(string bundlePath, IChunkDecompressionStrategy decompressor, IIDString64Provider? idString64Provider = null)
+    public static BundleHeader ReadBundleHeader(string bundlePath, IChunkDecompressor decompressor, IIDString64Provider? idString64Provider = null)
     {
         using var fs = File.OpenRead(bundlePath);
         return CoreReadBundleHeader(fs, decompressor, idString64Provider);
@@ -184,7 +188,7 @@ public sealed class Bundle : IDisposable
     /// <param name="bundleStream">The stream containing the bundle to read the header of. Must be seekable.</param>
     /// <param name="idString64Provider">The <see cref="IIDString64Provider"/> to use for looking up string hashes within the bundle header.</param>
     /// <returns>The bundle header that was read.</returns>
-    public static BundleHeader ReadBundleHeader(Stream bundleStream, IChunkDecompressionStrategy decompressor, IIDString64Provider? idString64Provider = null)
+    public static BundleHeader ReadBundleHeader(Stream bundleStream, IChunkDecompressor decompressor, IIDString64Provider? idString64Provider = null)
     {
         ArgumentNullException.ThrowIfNull(bundleStream);
         // We need to be able to seek so we can compare against the length of the stream to determine whether it's compressed.
@@ -194,7 +198,7 @@ public sealed class Bundle : IDisposable
         return CoreReadBundleHeader(bundleStream, decompressor, idString64Provider);
     }
 
-    private static BundleHeader CoreReadBundleHeader(Stream bundleStream, IChunkDecompressionStrategy decompressor, IIDString64Provider? idString64Provider)
+    private static BundleHeader CoreReadBundleHeader(Stream bundleStream, IChunkDecompressor decompressor, IIDString64Provider? idString64Provider)
     {
         var (version, size, isCompressed) = ReadBundleMeta(bundleStream);
         using Stream wrapperStream = CreateWrapperStream(bundleStream, isCompressed, decompressor);
@@ -280,7 +284,7 @@ public sealed class Bundle : IDisposable
         return (properties, resourceDescriptors);
     }
 
-    private static Stream CreateWrapperStream(Stream bundleStream, bool isCompressed, IChunkDecompressionStrategy decompressor)
+    private static Stream CreateWrapperStream(Stream bundleStream, bool isCompressed, IChunkDecompressor decompressor)
     {
         Stream resultStream = bundleStream;
         if (isCompressed)
