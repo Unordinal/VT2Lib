@@ -85,7 +85,7 @@ public sealed class Bundle : IDisposable
 
     #region Static Methods
 
-    public static IChunkDecompressionStrategy GetDecompressorForVersion(BundleVersion version, byte[]? decompressionDictionary)
+    public static IChunkDecompressionStrategy GetDecompressorForVersion(BundleVersion version, string? compressionDictionaryPath)
     {
         return version switch
         {
@@ -96,10 +96,10 @@ public sealed class Bundle : IDisposable
 
         IChunkDecompressionStrategy GetZstdDecompressionStrategy()
         {
-            if (decompressionDictionary is null)
+            if (compressionDictionaryPath is null)
                 throw new ArgumentException($"Must provide a Zstd decompression dictionary for bundle versions '{BundleVersion.VT2XC}' and above.");
 
-            return new ZstdChunkDecompressionStrategy(decompressionDictionary);
+            return new ZstdChunkDecompressionStrategy(File.ReadAllBytes(compressionDictionaryPath));
         }
     }
 
@@ -282,9 +282,13 @@ public sealed class Bundle : IDisposable
 
     private static Stream CreateWrapperStream(Stream bundleStream, bool isCompressed, IChunkDecompressionStrategy decompressor)
     {
-        ICompressedChunkReader chunkReader = new CompressedChunkReader(bundleStream, true, decompressor);
-        Stream maybeCompressedStream = isCompressed ? new CompressedChunkDecompressionStream(chunkReader) : bundleStream;
-        return new LeaveOpenStream(maybeCompressedStream);
+        Stream resultStream = bundleStream;
+        if (isCompressed)
+        {
+            ICompressedChunkReader chunkReader = new CompressedChunkReader(bundleStream, true, decompressor);
+            resultStream = new CompressedChunkDecompressionStream(chunkReader);
+        }
+        return new LeaveOpenStream(resultStream);
     }
 
     // This isn't foolproof; if a bundle starts with an uncompressed chunk this would assume the entire bundle is uncompressed.

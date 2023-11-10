@@ -14,7 +14,6 @@ internal sealed class CompressedChunkDecompressionStream : Stream
     public override bool CanSeek => false;
 
     private readonly ICompressedChunkReader _chunkReader;
-    private readonly bool _leaveOpen;
     private bool _disposed;
 
     private readonly RentedArray<byte> _buffer;
@@ -56,7 +55,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return ReadFromBuffer(buffer[bytesFromBuffer..]) + bytesFromBuffer;
     }
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count,
+    /*public override Task<int> ReadAsync(byte[] buffer, int offset, int count,
         CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
@@ -64,7 +63,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
     }
 
-    /*public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
+    public override async ValueTask<int> ReadAsync(Memory<byte> buffer,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();

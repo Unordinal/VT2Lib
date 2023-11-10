@@ -61,9 +61,8 @@ public partial class ChunkDecompressionStreamTests
 
         string bundleName = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\00a353ad557df55f";
         const string compDictPath = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\compression.dictionary";
-        byte[] dictBytes = File.ReadAllBytes(compDictPath);
 
-        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, dictBytes);
+        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, compDictPath);
 
         var header = Bundle.ReadBundleHeader(bundleName, decompressor);
         _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
