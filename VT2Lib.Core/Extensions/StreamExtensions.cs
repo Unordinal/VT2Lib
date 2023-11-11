@@ -59,4 +59,23 @@ public static class StreamExtensions
         stream.ReadExactly(buffer);
         return Unsafe.ReadUnaligned<int>(ref MemoryMarshal.GetReference(buffer));
     }
+
+    public static long CopySomeTo(this Stream stream, Stream destination, long count)
+    {
+        long totalBytesRead = 0;
+        RentedArray<byte> buffer = new(32768);
+        do
+        {
+            int bytesToRead = (int)Math.Min(buffer.Length, count - totalBytesRead);
+            int bytesRead = stream.Read(buffer.Span[..bytesToRead]);
+            if (bytesRead == 0)
+                break;
+
+            destination.Write(buffer.Span[..bytesRead]);
+            totalBytesRead += bytesRead;
+        } 
+        while (totalBytesRead < count);
+
+        return totalBytesRead;
+    }
 }

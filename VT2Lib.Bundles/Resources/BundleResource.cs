@@ -28,6 +28,6 @@ public sealed class BundleResource
 
         _variants = new BundleResourceVariant[_bundledResource.VariantCount];
         for (int i = 0; i < _bundledResource.VariantCount; i++)
-            _variants[i] = new BundleResourceVariant(_bundledResource.VariantsMeta[i], _bundledResource.VariantsData[i]);
+            _variants[i] = new BundleResourceVariant(this, _bundledResource.VariantsMeta[i], _bundledResource.VariantsData[i]);
     }
 }

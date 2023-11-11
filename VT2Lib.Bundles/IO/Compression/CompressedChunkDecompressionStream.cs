@@ -29,7 +29,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
 
         _chunkReader = chunkReader;
 
-        _buffer = new RentedArray<byte>(ZlibUtil.MaxChunkLength * numChunksToBuffer);
+        _buffer = new RentedArray<byte>(Math.Min(chunkReader.GetChunkMaxDecompressedSize() * numChunksToBuffer, 4194000)); // max of 4 MB
         _numChunksToBuffer = numChunksToBuffer;
     }
 
@@ -55,7 +55,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return ReadFromBuffer(buffer[bytesFromBuffer..]) + bytesFromBuffer;
     }
 
-    /*public override Task<int> ReadAsync(byte[] buffer, int offset, int count,
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count,
         CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
@@ -79,7 +79,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
             return bytesFromBuffer;
 
         return ReadFromBuffer(buffer.Span[bytesFromBuffer..]) + bytesFromBuffer;
-    }*/
+    }
 
     public override void Flush()
     {
@@ -113,7 +113,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
             if (bytesRead == 0)
                 break;
 
-            totalBytesRead += ZlibUtil.MaxChunkLength;
+            totalBytesRead += bytesRead;
         }
 
         _readPos = 0;
@@ -121,7 +121,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         return totalBytesRead;
     }
 
-    /*private async ValueTask<int> FillBufferAsync(CancellationToken cancellationToken = default)
+    private async ValueTask<int> FillBufferAsync(CancellationToken cancellationToken = default)
     {
         Debug.Assert(_disposed == false);
         Debug.Assert(_readPos == _readLen);
@@ -141,7 +141,7 @@ internal sealed class CompressedChunkDecompressionStream : Stream
         _readPos = 0;
         _readLen = totalBytesRead;
         return totalBytesRead;
-    }*/
+    }
 
     protected override void Dispose(bool disposing)
     {

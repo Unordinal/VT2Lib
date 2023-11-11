@@ -7,7 +7,7 @@ public sealed record class BundledResourceMeta(ResourceLocator ResourceLocator, 
 {
     public static int GetSizeForBundleVersion(BundleVersion version)
     {
-        // FIXME: VT1 is very likely wrong and VT2 is possibly wrong. Check against each bundle version.
+        // TODO: VT1 is very likely wrong and VT2 is possibly wrong. Low priority, but check against each bundle version.
         return version switch
         {
             BundleVersion.VT1 => 20,

@@ -18,8 +18,8 @@ public enum BundleVersion : uint
     /// </summary>
     VT2X = 0xF0000006,
     /// <summary>
-    /// The zstd bundle version. Used in Vermintide 2.X. Bundle chunk compression was changed from zlib chunks to zstd with 
+    /// The zstd bundle version. Used in Vermintide 2.X update (buildId 12471706, released 2023/10/19). Bundle chunk compression was changed from zlib chunks to zstd chunks with 
     /// a dictionary stored in a 'compression.dictionary' file in the bundle folder.
     /// </summary>
-    VT2XC = 0xF0000007
+    VT2XZtd = 0xF0000007
 }

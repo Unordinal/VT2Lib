@@ -7,6 +7,8 @@ namespace VT2Lib.Bundles.IO.Compression;
 
 internal class CompressedChunkReader : ICompressedChunkReader
 {
+    public int UncompressedChunkLength => _decompressor.UncompressedChunkLength;
+
     protected readonly Stream _stream;
     protected readonly bool _leaveOpen;
     protected readonly IChunkDecompressor _decompressor;
@@ -54,6 +56,21 @@ internal class CompressedChunkReader : ICompressedChunkReader
         return currChunk;
     }
 
+    public virtual int GetChunkMaxDecompressedSize()
+    {
+        ThrowIfDisposed();
+        /*if (!TryReadChunkSize(out int chunkSize))
+            return 0;*/
+
+        return _decompressor.GetMaxDecompressedSize();
+    }
+
+    public virtual long GetChunkMaxDecompressedSize(int chunkIndex)
+    {
+        SeekToChunk(chunkIndex);
+        return GetChunkMaxDecompressedSize();
+    }
+
     public virtual long SeekToChunk(int chunkIndex)
     {
         ThrowIfDisposed();
@@ -91,24 +108,27 @@ internal class CompressedChunkReader : ICompressedChunkReader
         bool decompress = true)
     {
         ThrowIfDisposed();
-        if (destination.Length < ZlibUtil.MaxChunkLength)
+        if (destination.Length < GetChunkMaxDecompressedSize())
             throw new ArgumentException("Destination span not large enough.", nameof(destination));
         if (!TryReadChunkSize(out int chunkSize))
             return 0;
 
-        bool isCompressed = chunkSize < ZlibUtil.MaxChunkLength;
+        int bytesRead = 0;
+        bool isCompressed = chunkSize != _decompressor.UncompressedChunkLength;
         if (isCompressed && decompress)
         {
             using RentedArray<byte> buffer = new(chunkSize);
             _stream.ReadExactly(buffer.Span);
-            _decompressor.Decompress(buffer.Span, destination);
+            bytesRead = _decompressor.Decompress(buffer.Span, destination);
         }
         else
         {
+            Debug.Assert(chunkSize ==  _decompressor.UncompressedChunkLength);
             _stream.ReadExactly(destination[..chunkSize]);
+            bytesRead = chunkSize;
         }
 
-        return chunkSize;
+        return bytesRead;
     }
 
     public virtual int ReadChunk(
@@ -126,29 +146,44 @@ internal class CompressedChunkReader : ICompressedChunkReader
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        if (destination.Length < ZlibUtil.MaxChunkLength)
+        if (destination.Length < GetChunkMaxDecompressedSize())
             throw new ArgumentException("Destination span not large enough.", nameof(destination));
         if (!TryReadChunkSize(out int chunkSize))
             return 0;
 
         cancellationToken.ThrowIfCancellationRequested();
-        bool isCompressed = chunkSize < ZlibUtil.MaxChunkLength;
+
+        int bytesRead = 0;
+        bool isCompressed = chunkSize != _decompressor.UncompressedChunkLength;
         if (isCompressed && decompress)
         {
             using RentedArray<byte> buffer = new(chunkSize);
             await _stream.ReadExactlyAsync(buffer.Memory, cancellationToken)
                 .ConfigureAwait(false);
-            _decompressor.Decompress(buffer.Span, destination.Span);
-            /*await ZlibUtil.DecompressAsync(buffer.Memory, destination, cancellationToken)
-                .ConfigureAwait(false);*/
+
+            bytesRead = await _decompressor.DecompressAsync(buffer.Memory, destination, cancellationToken)
+                .ConfigureAwait(false);
         }
         else
         {
+            Debug.Assert(chunkSize == _decompressor.UncompressedChunkLength);
+
             await _stream.ReadExactlyAsync(destination[..chunkSize], cancellationToken)
                 .ConfigureAwait(false);
+            bytesRead = chunkSize;
         }
 
-        return chunkSize;
+        return bytesRead;
+    }
+
+    public virtual Task<int> ReadChunkAsync(
+        int chunkIndex,
+        Memory<byte> destination,
+        bool decompress = true,
+        CancellationToken cancellationToken = default)
+    {
+        SeekToChunk(chunkIndex);
+        return ReadChunkAsync(destination, decompress, cancellationToken);
     }
 
     public void Dispose()
@@ -169,7 +204,9 @@ internal class CompressedChunkReader : ICompressedChunkReader
             return false;
 
         chunkSize = BinaryPrimitives.ReadInt32LittleEndian(chunkSizeBytes);
-        Debug.Assert(chunkSize is > 0 and <= ZlibUtil.MaxChunkLength);
+        if (chunkSize < 0)
+            throw new InvalidDataException($"Bad chunk size for compressed chunk at position {_stream.Position}. ({chunkSize} < 0)");
+
         return true;
     }
 

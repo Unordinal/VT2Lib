@@ -10,12 +10,12 @@ public static class ZlibUtil
     /// Gets the max chunk length of a Zlib chunk in a VT2 bundle.
     /// If a chunk's length is equal to this value, it's uncompressed.
     /// </summary>
-    public const int MaxChunkLength = 0x10000;
+    //public const int MaxChunkLength = 0x10000;
 
     /// <summary>
     /// Gets the header of a Zlib chunk in a VT2 bundle.
     /// </summary>
-    public const short ChunkHeader = 0x789C;
+    //public const short ChunkHeader = 0x789C;
 
     public static int Decompress(Inflater inflater, byte[] input, int start, int count, Span<byte> destination)
     {
