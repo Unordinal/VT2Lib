@@ -1,8 +1,8 @@
 ﻿using VT2Lib.Core.IO;
 
-namespace VT2Lib.Core.Stingray.Resources.Readers;
+namespace VT2Lib.Core.Stingray.Resources.Readers.Binary;
 
-public sealed class BonesResourceReader : ResourceReader<BonesResource>
+public sealed class BonesBinaryResourceReader : BinaryResourceReader<BonesResource>
 {
     public override BonesResource Read(PrimitiveReader reader)
     {

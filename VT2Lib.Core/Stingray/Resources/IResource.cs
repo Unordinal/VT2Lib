@@ -11,10 +11,11 @@ public interface IResource
     // TODO: This _would_ be a 'static abstract' declaration, but 'static abstract' has issues with this use case;
     // interfaces that have a 'static abstract' member can't be used as type arguments, which makes them useless for quite a few
     // cases such as this. See https://github.com/dotnet/csharplang/issues/5955
+    // 2023/11/10: this issue occurs when you return something like an IResource from a method and use it as a type argument.
+    // This feels like something that should work, but nope. It means you can't have a list of INumber<int>, for instance.
+    // Now we just have to remember to implement it or we runtime error.
     /// <summary>
     /// Gets the type of resource this is as an <see cref="IDString64"/>.
     /// </summary>
-    static abstract IDString64 ResourceType { get; }
-
-    //static virtual IDString64 ResourceType => throw new NotImplementedException();
+    static virtual IDString64 ResourceType => throw new NotImplementedException();
 }

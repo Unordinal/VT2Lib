@@ -1,4 +1,8 @@
-﻿using VT2Lib.Core.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace VT2Lib.Core.Stingray.Resources.Readers;
 
@@ -10,7 +14,5 @@ public interface IResourceReader
 
     bool CanRead(Type? resourceType);
 
-    IResource Read(PrimitiveReader reader);
-
-    IResource Read(ReadOnlySpan<byte> buffer);
+    IResource Read(Stream stream);
 }

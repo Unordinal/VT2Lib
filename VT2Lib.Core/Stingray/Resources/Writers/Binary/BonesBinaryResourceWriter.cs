@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using VT2Lib.Core.Extensions;
 
-namespace VT2Lib.Core.Stingray.Resources.Writers;
+namespace VT2Lib.Core.Stingray.Resources.Writers.Binary;
 
-public sealed class BonesResourceWriter : ResourceWriter<BonesResource>
+public sealed class BonesBinaryResourceWriter : BinaryResourceWriter<BonesResource>
 {
     public override void Write(BinaryWriter writer, BonesResource bones)
     {

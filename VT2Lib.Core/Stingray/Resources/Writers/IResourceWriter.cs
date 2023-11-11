@@ -4,9 +4,9 @@ public interface IResourceWriter
 {
     bool CanWrite(IDString64 resourceType);
 
-    bool CanWrite<TResource>() where TResource : IResource;
-
     bool CanWrite(Type? resourceType);
 
-    void Write(BinaryWriter writer, IResource resource);
+    bool CanWrite<TResource>() where TResource : IResource;
+
+    void Write(Stream stream, IResource resource);
 }

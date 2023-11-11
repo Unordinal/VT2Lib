@@ -1,8 +1,8 @@
 ﻿using VT2Lib.Core.IO;
 
-namespace VT2Lib.Core.Stingray.Resources.Readers;
+namespace VT2Lib.Core.Stingray.Resources.Readers.Binary;
 
-public abstract class ResourceReader<TResource> : IResourceReader
+public abstract class BinaryResourceReader<TResource> : IBinaryResourceReader
     where TResource : IResource, new()
 {
     public bool CanRead(IDString64 resourceType)
@@ -33,13 +33,20 @@ public abstract class ResourceReader<TResource> : IResourceReader
         }
     }
 
-    IResource IResourceReader.Read(PrimitiveReader reader)
+    IResource IBinaryResourceReader.Read(PrimitiveReader reader)
     {
         return Read(reader);
     }
 
-    IResource IResourceReader.Read(ReadOnlySpan<byte> buffer)
+    IResource IBinaryResourceReader.Read(ReadOnlySpan<byte> buffer)
     {
         return Read(buffer);
+    }
+
+    IResource IResourceReader.Read(Stream stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        using var reader = new PrimitiveReader(stream, true);
+        return Read(reader);
     }
 }

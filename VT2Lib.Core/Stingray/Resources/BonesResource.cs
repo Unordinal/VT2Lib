@@ -1,4 +1,7 @@
-﻿namespace VT2Lib.Core.Stingray.Resources;
+﻿using System.Numerics;
+using VT2Lib.Core.Stingray.Resources.Readers;
+
+namespace VT2Lib.Core.Stingray.Resources;
 
 public sealed class BonesResource : IResource
 {
@@ -16,8 +19,7 @@ public sealed class BonesResource : IResource
 
     public IEnumerable<IDString32> GetBoneNameIDStrings()
     {
-        bool namesAreStored = BoneNames.Length == BoneNameHashes.Length;
         for (int i = 0; i < BoneNameHashes.Length; i++)
-            yield return new IDString32(BoneNameHashes[i], namesAreStored ? BoneNames[i] : null);
+            yield return new IDString32(BoneNameHashes[i], BoneNames.ElementAtOrDefault(i));
     }
 }
