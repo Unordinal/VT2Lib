@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
+using Xunit.Sdk;
 
 namespace VT2Lib.Tests.Attributes;
 
+[DataDiscoverer("Xunit.Sdk.MemberDataDiscoverer", "xunit.core")]
 /// <summary>
 /// Works like <see cref="MemberDataAttribute"/> but allows you to specify further parameters that 
 /// will be concat'd to each object[] returned by the member. Makes it easier to do permutations on top of data.

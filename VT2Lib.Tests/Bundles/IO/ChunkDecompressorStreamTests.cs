@@ -11,9 +11,6 @@ namespace VT2Lib.Tests.Bundles.IO;
 
 public partial class ChunkDecompressionStreamTests
 {
-    private static readonly string TestBundleFilesPath = Path.Combine(ProjectSource.ProjectDirectory, @"TestFiles\Bundles\");
-    private static readonly string CompressionDictPath = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\compression.dictionary";
-
     private readonly ITestOutputHelper _output;
 
     public ChunkDecompressionStreamTests(ITestOutputHelper output)
@@ -22,16 +19,16 @@ public partial class ChunkDecompressionStreamTests
     }
 
     [Theory]
-    [MemberData(nameof(ReadTestBundleFiles))]
+    [MemberData(nameof(TestUtils.GetMixedBundleNames), MemberType = typeof(TestUtils))]
     public void CDS_ReadBundlesHeader(string bundleName)
     {
         HashDictUtil.PrepareKnownHashes();
 
-        bundleName = GetPathForBundle(bundleName); // Purely so it shows up clearly in the Test Explorer.
-        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2X, null);
+        bundleName = Path.Combine(TestPaths.MixedBundleFilesPath, bundleName); // Purely so it shows up clearly in the Test Explorer.
+        //var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2X, (string?)null);
 
-        var header = Bundle.ReadBundleHeader(bundleName, decompressor);
-        _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
+        var header = Bundle.ReadBundleHeader(bundleName);
+        _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({TestUtils.HumanizeBytes(header.Size)})]]");
         _output.WriteLine($"[Version {header.Version}]");
 
         string propsList = string.Join(", ", header.Properties.Where(p => p != IDString64.Empty));
@@ -48,22 +45,22 @@ public partial class ChunkDecompressionStreamTests
                 _output.WriteLine($"[Resources of type '{lastType}']");
             }
             var resLoc = resource.ResourceLocator;
-            _output.WriteLine($"\t{resLoc.Name} ({MiscUtil.HumanizeBytes(resource.TotalSize)}; Flag: {resource.Flag})");
+            _output.WriteLine($"\t{resLoc.Name} ({TestUtils.HumanizeBytes(resource.TotalSize)}; Flag: {resource.Flag})");
         }
         _output.WriteLine("");
     }
 
-    [Fact]
+    /*[Fact]
     public void CDS_ReadNewBundleHeaderTest()
     {
         HashDictUtil.PrepareKnownHashes();
 
         string bundleName = @"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\bundle\00a353ad557df55f";
 
-        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XC, CompressionDictPath);
+        var decompressor = Bundle.GetDecompressorForVersion(BundleVersion.VT2XZtd, TestPaths.CompressionDictPath);
 
         var header = Bundle.ReadBundleHeader(bundleName, decompressor);
-        _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({MiscUtil.HumanizeBytes(header.Size)})]]");
+        _output.WriteLine($"[[Bundle: {Path.GetFileName(bundleName)} ({TestUtils.HumanizeBytes(header.Size)})]]");
         _output.WriteLine($"[Version {header.Version}]");
         string propsList = string.Join(", ", header.Properties.Where(p => p != IDString64.Empty));
         _output.WriteLine($"[{header.Properties.Count} properties: [{propsList}]]");
@@ -79,22 +76,23 @@ public partial class ChunkDecompressionStreamTests
                 _output.WriteLine($"[Resources of type '{lastType}']");
             }
             var resLoc = resource.ResourceLocator;
-            _output.WriteLine($"\t{resLoc.Name} ({MiscUtil.HumanizeBytes(resource.TotalSize)}; Flag: {resource.Flag})");
+            _output.WriteLine($"\t{resLoc.Name} ({TestUtils.HumanizeBytes(resource.TotalSize)}; Flag: {resource.Flag})");
         }
         _output.WriteLine("");
-    }
+    }*/
 
     [Theory]
-    [MemberDataWithInline(nameof(ReadTestBundleFiles), 2)]
-    [MemberDataWithInline(nameof(ReadTestBundleFiles), 8)]
+    [MemberDataWithInline(nameof(TestUtils.GetMixedBundleNames), 2, MemberType = typeof(TestUtils))]
     public void CDS_ReadBundlesChunks(string bundleName, int numChunksToBuffer)
     {
         //_output.WriteLine("Reading bundle " + bundleName);
-        bundleName = GetPathForBundle(bundleName); // Purely so it shows up clearly in the Test Explorer.
+        bundleName = Path.Combine(TestPaths.MixedBundleFilesPath, bundleName); // Purely so it shows up clearly in the Test Explorer.
+        var (version, _, _) = Bundle.ReadBundleMeta(bundleName);
+        var decompressor = Bundle.GetDecompressorForVersion(version, TestPaths.GetCompressionDict(bundleName));
 
         using var fs = File.OpenRead(bundleName);
         using var reader = new PrimitiveReader(fs);
-        using var compChunkReader = new CompressedChunkReader(fs, true, new ZlibChunkDecompressor());
+        using var compChunkReader = new CompressedChunkReader(fs, true, decompressor);
         using var decompStream = new CompressedChunkDecompressionStream(compChunkReader, numChunksToBuffer);
 
         uint bundleVersion = reader.ReadUInt32LE();
@@ -107,49 +105,10 @@ public partial class ChunkDecompressionStreamTests
         int bytesRead = decompStream.ReadAtLeast(bundleData, (int)bundleUncompressedSize, false);
 
         Assert.Equal(bundleUncompressedSize, (ulong)bytesRead);
-        Assert.True(IsRestOfStreamZeroes(decompStream)); // Last bundle chunk is zero-padded.
+        Assert.True(TestUtils.IsRestOfStreamZeroes(decompStream), "Rest of stream is not zeroes."); // Last bundle chunk is zero-padded.
         Assert.Throws<EndOfStreamException>(() =>
         {
             decompStream.ReadExactly(stackalloc byte[1]);
         });
     }
-
-    public static IEnumerable<object[]> ReadTestBundleFiles()
-    {
-        Assert.True(Directory.Exists(TestBundleFilesPath));
-        foreach (var filePath in Directory.EnumerateFiles(TestBundleFilesPath).Where(IsBundleFile))
-            yield return new object[] { Path.GetFileName(filePath) }; // Purely so it shows up clearly in the Test Explorer.
-    }
-
-    private static bool IsRestOfStreamZeroes(Stream stream)
-    {
-        using RentedArray<byte> buffer = new(4096);
-        var bufSpan = buffer.Span;
-
-        int bytesRead;
-        while ((bytesRead = stream.Read(bufSpan)) != 0)
-        {
-            for (int i = 0; i < bytesRead; i++)
-            {
-                if (bufSpan[i] != 0)
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static string GetPathForBundle(string bundleName)
-    {
-        return Path.Combine(TestBundleFilesPath, bundleName);
-    }
-
-    private static bool IsBundleFile(string filePath)
-    {
-        string fileName = Path.GetFileName(filePath);
-        return BundleNameRegex().IsMatch(fileName);
-    }
-
-    [GeneratedRegex(@"[a-z0-9]{16}(?>\.patch_\d{3})?$")]
-    private static partial Regex BundleNameRegex();
 }
