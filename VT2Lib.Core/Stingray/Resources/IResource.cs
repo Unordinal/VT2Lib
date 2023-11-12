@@ -3,6 +3,7 @@
 // EVAL: I kind of hate this. Should this be done this way? We'd like to treat resources as one 'thing' so we can
 // easily manipulate them at a high level (extract, import, etc) without caring about the specific type but I'm not
 // 100% on whether this is the best way to go about it.
+// EVAL: Should this be named something like IStingrayResource instead?
 /// <summary>
 /// Represents a Stingray resource.
 /// </summary>
@@ -17,5 +18,7 @@ public interface IResource
     /// <summary>
     /// Gets the type of resource this is as an <see cref="IDString64"/>.
     /// </summary>
-    static virtual IDString64 ResourceType => throw new NotImplementedException();
+    static virtual IDString64 ResourceID => throw new NotImplementedException();
+
+    IDString64 GetResourceID();
 }
