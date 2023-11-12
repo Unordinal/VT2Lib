@@ -7,7 +7,7 @@ public class BinaryBonesResourceWriter : ResourceWriter<BonesResource>
 {
     public override void Write(Stream stream, BonesResource resource)
     {
-        using var writer = new PrimitiveWriter(stream, true);
+        PrimitiveWriter writer = new(stream);
 
         writer.WriteInt32LE(resource.BoneNameHashes.Length);
         writer.WriteInt32LE(resource.Lods.Length);
