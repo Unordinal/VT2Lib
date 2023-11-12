@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace VT2Lib.Core.IO;
 
-public sealed partial class PrimitiveReader : IDisposable
+public readonly ref partial struct PrimitiveReader
 {
     public ushort ReadUInt16BE()
     {

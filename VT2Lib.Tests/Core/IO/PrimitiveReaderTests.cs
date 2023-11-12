@@ -19,7 +19,7 @@ public class PrimitiveReaderTests
     public void Read_SimpleNumbersSigned()
     {
         // Arrange
-        using PrimitiveReader reader = new(new MemoryStream(GetBasicNumbers()));
+        PrimitiveReader reader = new(new MemoryStream(GetBasicNumbers()));
         int expectedInt = 5;
         short expectedShort = 2;
         long expectedLong = 17;
@@ -39,7 +39,7 @@ public class PrimitiveReaderTests
     public void Read_SimpleNumbersSignedParity()
     {
         byte[] number = new byte[] { 5, 0, 0, 0, 0, 0, 0, 0 };
-        using PrimitiveReader reader = new(new MemoryStream(number));
+        PrimitiveReader reader = new(new MemoryStream(number));
         int expectedInt = 5;
         short expectedShort = 5;
         long expectedLong = 5;
@@ -55,15 +55,15 @@ public class PrimitiveReaderTests
         Assert.Equal(expectedLong, actualLong);
     }
 
-    [Fact]
+    /*[Fact]
     public void Read_ThrowsAfterDisposed()
     {
-        using PrimitiveReader reader = new(new MemoryStream(GetBasicNumbers()));
+        PrimitiveReader reader = new(new MemoryStream(GetBasicNumbers()));
         reader.Dispose();
         Assert.Throws<ObjectDisposedException>(() => reader.ReadUInt32LE());
         Assert.Throws<ObjectDisposedException>(() => reader.ReadInt16BE());
         Assert.Throws<ObjectDisposedException>(() => reader.BaseStream.Position);
-    }
+    }*/
 
     //[Fact]
     private void Reader_Benchmark()
@@ -71,7 +71,7 @@ public class PrimitiveReaderTests
         var numbers = GetBasicNumbers();
         Benchmark(() =>
         {
-            using PrimitiveReader reader = new(new MemoryStream(numbers));
+            PrimitiveReader reader = new(new MemoryStream(numbers));
             reader.ReadUInt32LE();
         }, 100000, "reader read");
     }

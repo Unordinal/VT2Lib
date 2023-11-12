@@ -5,7 +5,7 @@ namespace VT2Lib.Core.Stingray.Extensions;
 
 public static class PrimitiveReaderExtensions
 {
-    public static IDString32 ReadIDString32(this PrimitiveReader reader, IIDString32Provider? idStringProvider = null)
+    public static IDString32 ReadIDString32(this ref PrimitiveReader reader, IIDString32Provider? idStringProvider = null)
     {
         idStringProvider ??= IDStringRepository.Shared;
         uint id = reader.ReadUInt32LE();
@@ -15,7 +15,7 @@ public static class PrimitiveReaderExtensions
         return idString;
     }
 
-    public static IDString64 ReadIDString64(this PrimitiveReader reader, IIDString64Provider? idStringProvider = null)
+    public static IDString64 ReadIDString64(this ref PrimitiveReader reader, IIDString64Provider? idStringProvider = null)
     {
         idStringProvider ??= IDStringRepository.Shared;
         ulong id = reader.ReadUInt64LE();
@@ -25,7 +25,7 @@ public static class PrimitiveReaderExtensions
         return idString;
     }
 
-    public static ResourceLocator ReadResourceLocator(this PrimitiveReader reader, IIDString64Provider? idStringProvider = null)
+    public static ResourceLocator ReadResourceLocator(this ref PrimitiveReader reader, IIDString64Provider? idStringProvider = null)
     {
         idStringProvider ??= IDStringRepository.Shared;
         IDString64 type = reader.ReadIDString64(idStringProvider);

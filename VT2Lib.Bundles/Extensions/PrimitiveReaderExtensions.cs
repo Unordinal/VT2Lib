@@ -7,7 +7,7 @@ namespace VT2Lib.Bundles.Extensions;
 
 internal static class PrimitiveReaderExtensions
 {
-    public static BundledResourceMeta ReadBundledResourceMeta(this PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
+    public static BundledResourceMeta ReadBundledResourceMeta(this ref PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
     {
         idString64Provider ??= IDStringRepository.Shared;
 
@@ -22,7 +22,7 @@ internal static class PrimitiveReaderExtensions
         );
     }
 
-    public static BundledResource ReadBundledResource(this PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
+    public static BundledResource ReadBundledResource(this ref PrimitiveReader reader, IIDString64Provider? idString64Provider = null)
     {
         idString64Provider ??= IDStringRepository.Shared;
         var resourceLocator = reader.ReadResourceLocator(idString64Provider);
@@ -47,7 +47,7 @@ internal static class PrimitiveReaderExtensions
         };
     }
 
-    public static BundledResourceVariantMeta ReadBundledResourceVariantMeta(this PrimitiveReader reader)
+    public static BundledResourceVariantMeta ReadBundledResourceVariantMeta(this ref PrimitiveReader reader)
     {
         return new BundledResourceVariantMeta
         (
