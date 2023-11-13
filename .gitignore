@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # VT2 Test Files
 VT2Lib.Tests/TestFiles/
+
+# .old Files
+.old*/
