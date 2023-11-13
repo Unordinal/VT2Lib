@@ -1,6 +1,6 @@
 ﻿namespace VT2Lib.Core.Stingray.Resources.Bones;
 
-public abstract record class BonesResource : Resource<BonesResource>
+public abstract class BonesResource : Resource<BonesResource>
 {
     public static IDString64 ResourceID { get; } = "bones";
 

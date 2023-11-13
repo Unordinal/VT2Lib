@@ -3,9 +3,11 @@ using VT2Lib.Core.Stingray.Attributes;
 
 namespace VT2Lib.Core.Stingray.Resources;
 
-public abstract record class Resource<TResource> : IResource
+public abstract class Resource<TResource> : IResource
     where TResource : IResource
 {
+    private static IEnumerable<(Type, int)>? _allVersions;
+
     public IDString64 GetResourceID()
     {
         return TResource.ResourceID;
@@ -13,7 +15,17 @@ public abstract record class Resource<TResource> : IResource
 
     public int GetResourceVersion()
     {
-        var versionAttr = GetType().GetCustomAttributes<ResourceVersionAttribute>();
-        return versionAttr.FirstOrDefault()?.Version ?? throw new InvalidOperationException($"Resource has no declared {nameof(ResourceVersionAttribute)}");
+        var versionAttr = GetType().GetCustomAttributes<StingrayResourceAttribute>();
+        return versionAttr.FirstOrDefault()?.Version ?? StingrayResourceAttribute.Versionless;
+        //return versionAttr.FirstOrDefault()?.Version ?? throw new InvalidOperationException($"Resource has no declared {nameof(ResourceVersionAttribute)}");
+    }
+
+    public static IEnumerable<(Type Type, int Version)> GetAllVersions()
+    {
+        _allVersions ??= ReflectionUtil.GetAllSubclasses(typeof(Resource<TResource>))
+                .Where(t => t.IsDefined(typeof(StingrayResourceAttribute), false))
+                .Select(t => (Type: t, t.GetCustomAttribute<StingrayResourceAttribute>(false)!.Version));
+
+        return _allVersions;
     }
 }

@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Stingray\Serialization\" />
+    <Folder Include="Stingray\Resources\Texture\" />
   </ItemGroup>
 
 </Project>

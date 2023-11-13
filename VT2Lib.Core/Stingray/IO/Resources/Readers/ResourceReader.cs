@@ -1,16 +1,28 @@
-﻿using VT2Lib.Core.Stingray.Resources;
+﻿using VT2Lib.Core.IO;
+using VT2Lib.Core.Stingray.Resources;
 
 namespace VT2Lib.Core.Stingray.IO.Resources.Readers;
 
-public abstract class ResourceReader<TResource> : IResourceReader
-    where TResource : IResource
+public class ResourceReader : IResourceReader
 {
-    public abstract TResource Read(Stream stream);
+    public IDString64 ResourceID { get; }
 
-    IResource IResourceReader.Read(Stream stream)
+    protected readonly ResourceReaderDelegate _readerFunc;
+
+    public ResourceReader(IDString64 resourceID, ResourceReaderDelegate readerFunc)
     {
-        return Read(stream);
+        ResourceID = resourceID;
+        _readerFunc = readerFunc;
     }
 
-    public static implicit operator ResourceReaderDelegate(ResourceReader<TResource> reader) => ((IResourceReader)reader).Read;
+    public bool CanRead(IDString64 resourceID)
+    {
+        return resourceID == ResourceID;
+    }
+
+    public IResource Read(Stream stream)
+    {
+        var reader = new PrimitiveReader(stream);
+        return _readerFunc(in reader);
+    }
 }

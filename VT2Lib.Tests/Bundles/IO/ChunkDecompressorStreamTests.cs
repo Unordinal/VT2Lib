@@ -91,7 +91,8 @@ public partial class ChunkDecompressionStreamTests
         var decompressor = Bundle.GetDecompressorForVersion(version, TestPaths.GetCompressionDict(bundleName));
 
         using var fs = File.OpenRead(bundleName);
-        using var reader = new PrimitiveReader(fs);
+        var reader = new PrimitiveReader(fs);
+
         using var compChunkReader = new CompressedChunkReader(fs, true, decompressor);
         using var decompStream = new CompressedChunkDecompressionStream(compChunkReader, numChunksToBuffer);
 
