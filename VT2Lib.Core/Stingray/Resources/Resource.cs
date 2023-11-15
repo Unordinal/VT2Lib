@@ -12,7 +12,7 @@ public abstract class Resource<TResource> : IResource
 
     public Resource()
     {
-        _version = ResourceVersionCache.GetResourceVersion(GetType());
+        _version = ResourceVersionUtil.GetResourceVersion(GetType());
     }
 
     public IDString64 GetResourceID()

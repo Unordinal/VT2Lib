@@ -4,7 +4,7 @@ using VT2Lib.Core.Stingray.Attributes;
 
 namespace VT2Lib.Core.Stingray.Resources;
 
-internal static class ResourceVersionCache
+internal static class ResourceVersionUtil
 {
     private static readonly ConcurrentDictionary<Type, int> _versionCache = new();
 
@@ -22,5 +22,19 @@ internal static class ResourceVersionCache
         }
 
         return version;
+    }
+
+    public static void EnsureSupportedVersion<TResource>(int resourceVersion)
+        where TResource : IResource
+    {
+        if (!IsSupportedVersion<TResource>(resourceVersion))
+            throw new InvalidDataException($"Unsupported resource version '{resourceVersion}' for type '{typeof(TResource).Name}'");
+    }
+
+    public static bool IsSupportedVersion<TResource>(int resourceVersion)
+        where TResource : IResource
+    {
+        int version = GetResourceVersion(typeof(TResource));
+        return version == resourceVersion;
     }
 }

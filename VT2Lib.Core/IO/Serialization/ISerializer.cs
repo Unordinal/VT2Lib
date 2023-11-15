@@ -1,6 +1,6 @@
 ﻿namespace VT2Lib.Core.IO.Serialization;
 
-internal interface ISerializer<T>
+public interface ISerializer<T>
 {
     void Serialize(Stream stream, T value);
 

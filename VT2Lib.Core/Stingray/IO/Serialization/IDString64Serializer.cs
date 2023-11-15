@@ -9,6 +9,8 @@ public sealed class IDString64Serializer : SerializerBase<IDString64>
 {
     public static IDString64Serializer Default { get; } = new();
 
+    public IIDString64Provider Provider => _idString64Provider;
+
     private readonly IIDString64Provider _idString64Provider;
 
     public IDString64Serializer(IIDString64Provider? idString64Provider = null)

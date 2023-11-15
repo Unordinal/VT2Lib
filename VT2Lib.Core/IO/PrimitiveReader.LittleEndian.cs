@@ -99,6 +99,36 @@ public readonly ref partial struct PrimitiveReader
         return new Vector4(x, y, z, w);
     }
 
+    // TODO: bleh, no Matrix3x3 type, should we make one? probs not really necessary let's be real
+    public Matrix4x4 ReadMatrix3x3LE()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(float) * 9];
+        ReadBytes(buffer);
+
+        Span<byte> r1 = buffer.Slice(0, 12);
+        float m11 = BinaryPrimitives.ReadSingleLittleEndian(r1);
+        float m12 = BinaryPrimitives.ReadSingleLittleEndian(r1[4..]);
+        float m13 = BinaryPrimitives.ReadSingleLittleEndian(r1[8..]);
+        
+        Span<byte> r2 = buffer.Slice(12, 12);
+        float m21 = BinaryPrimitives.ReadSingleLittleEndian(r2);
+        float m22 = BinaryPrimitives.ReadSingleLittleEndian(r2[4..]);
+        float m23 = BinaryPrimitives.ReadSingleLittleEndian(r2[8..]);
+        
+        Span<byte> r3 = buffer.Slice(24, 12);
+        float m31 = BinaryPrimitives.ReadSingleLittleEndian(r3);
+        float m32 = BinaryPrimitives.ReadSingleLittleEndian(r3[4..]);
+        float m33 = BinaryPrimitives.ReadSingleLittleEndian(r3[8..]);
+
+        return new Matrix4x4
+        (
+            m11, m12, m13, 0.0f,
+            m21, m22, m23, 0.0f,
+            m31, m32, m33, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+    
     public Matrix4x4 ReadMatrix4x4LE()
     {
         Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<Matrix4x4>()];

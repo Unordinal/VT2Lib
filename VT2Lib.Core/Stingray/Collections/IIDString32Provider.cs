@@ -14,14 +14,14 @@ public interface IIDString32Provider
     bool Contains(uint id);
 
     /// <summary>
-    /// Gets the <see cref="IDString32"/> with the specified ID from this <see cref="IIDStringProvider"/>.
+    /// Gets the <see cref="IDString32"/> with the specified ID from this <see cref="IIDString32Provider"/>.
     /// </summary>
     /// <param name="id">The ID of the value to lookup.</param>
     /// <returns>The <see cref="IDString32"/> retrieved from the provider.</returns>
     IDString32 Get(uint id);
 
     /// <summary>
-    /// Attempts to get the <see cref="IDString32"/> with the specified ID from this <see cref="IIDStringProvider"/>.
+    /// Attempts to get the <see cref="IDString32"/> with the specified ID from this <see cref="IIDString32Provider"/>.
     /// </summary>
     /// <param name="id">The ID of the value to lookup.</param>
     /// <param name="result">If this method returns <see langword="true"/>, the <see cref="IDString32"/> that was found; otherwise, <see langword="default"/>(<see cref="IDString32"/>).</param>

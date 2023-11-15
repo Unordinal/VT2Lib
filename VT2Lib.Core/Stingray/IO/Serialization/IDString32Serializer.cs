@@ -9,6 +9,8 @@ public sealed class IDString32Serializer : SerializerBase<IDString32>
 {
     public static IDString32Serializer Default { get; } = new();
 
+    public IIDString32Provider Provider => _idString32Provider;
+
     private readonly IIDString32Provider _idString32Provider;
 
     public IDString32Serializer(IIDString32Provider? idString32Provider = null)
