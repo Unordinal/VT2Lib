@@ -1,7 +1,7 @@
 ﻿using VT2Lib.Bundles.Resources;
 using VT2Lib.Core.IO;
 using VT2Lib.Core.Stingray.Collections;
-using VT2Lib.Core.Stingray.Extensions;
+using VT2Lib.Core.Stingray.IO.Extensions;
 
 namespace VT2Lib.Bundles.Extensions;
 

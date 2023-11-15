@@ -53,11 +53,18 @@ public static class StreamExtensions
         while ((bytesRead = await stream.ReadAsync(bufMem, cancellationToken)) != 0) { }
     }
 
-    public static int ReadInt32(this Stream stream)
+    public static int ReadInt32LE(this Stream stream)
     {
         Span<byte> buffer = stackalloc byte[4];
         stream.ReadExactly(buffer);
-        return Unsafe.ReadUnaligned<int>(ref MemoryMarshal.GetReference(buffer));
+        return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+    }
+
+    public static void WriteInt32LE(this Stream stream, int value)
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+        stream.Write(buffer);
     }
 
     public static long CopySomeTo(this Stream stream, Stream destination, long count)

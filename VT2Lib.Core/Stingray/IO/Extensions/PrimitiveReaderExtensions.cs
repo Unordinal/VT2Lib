@@ -1,7 +1,7 @@
 ﻿using VT2Lib.Core.IO;
 using VT2Lib.Core.Stingray.Collections;
 
-namespace VT2Lib.Core.Stingray.Extensions;
+namespace VT2Lib.Core.Stingray.IO.Extensions;
 
 public static class PrimitiveReaderExtensions
 {
