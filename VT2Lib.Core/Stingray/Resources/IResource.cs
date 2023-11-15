@@ -21,4 +21,6 @@ public interface IResource
     static virtual IDString64 ResourceID => throw new NotImplementedException();
 
     IDString64 GetResourceID();
+
+    int GetResourceVersion();
 }

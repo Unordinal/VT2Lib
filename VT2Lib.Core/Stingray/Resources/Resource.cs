@@ -8,6 +8,13 @@ public abstract class Resource<TResource> : IResource
 {
     private static IEnumerable<(Type, int)>? _allVersions;
 
+    private readonly int _version;
+
+    public Resource()
+    {
+        _version = ResourceVersionCache.GetResourceVersion(GetType());
+    }
+
     public IDString64 GetResourceID()
     {
         return TResource.ResourceID;
@@ -15,17 +22,15 @@ public abstract class Resource<TResource> : IResource
 
     public int GetResourceVersion()
     {
-        var versionAttr = GetType().GetCustomAttributes<StingrayResourceAttribute>();
-        return versionAttr.FirstOrDefault()?.Version ?? StingrayResourceAttribute.Versionless;
-        //return versionAttr.FirstOrDefault()?.Version ?? throw new InvalidOperationException($"Resource has no declared {nameof(ResourceVersionAttribute)}");
+        return _version;
     }
 
-    public static IEnumerable<(Type Type, int Version)> GetAllVersions()
+    /*public static IEnumerable<(Type Type, int Version)> GetAllVersions()
     {
         _allVersions ??= ReflectionUtil.GetAllSubclasses(typeof(Resource<TResource>))
                 .Where(t => t.IsDefined(typeof(StingrayResourceAttribute), false))
                 .Select(t => (Type: t, t.GetCustomAttribute<StingrayResourceAttribute>(false)!.Version));
 
         return _allVersions;
-    }
+    }*/
 }

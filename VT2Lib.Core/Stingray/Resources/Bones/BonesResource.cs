@@ -1,8 +1,16 @@
-﻿namespace VT2Lib.Core.Stingray.Resources.Bones;
+﻿using VT2Lib.Core.IO;
+using VT2Lib.Core.Stingray.IO.Resources.Readers;
+using VT2Lib.Core.Stingray.IO.Resources.Writers;
+
+namespace VT2Lib.Core.Stingray.Resources.Bones;
 
 public abstract class BonesResource : Resource<BonesResource>
 {
     public static IDString64 ResourceID { get; } = "bones";
+
+    public static ResourceReaderDelegate BinaryReader { get; } = BonesResourceV0.ReadBinary;
+
+    public static ResourceWriterDelegate BinaryWriter { get; } = BonesResourceV0.WriteBinary;
 
     public required uint[] BoneNameHashes { get; set; }
 

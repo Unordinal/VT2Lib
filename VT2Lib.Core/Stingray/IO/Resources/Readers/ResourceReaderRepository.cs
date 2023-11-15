@@ -7,32 +7,32 @@ namespace VT2Lib.Core.Stingray.IO.Resources.Readers;
 
 // Jeez, talk about over-engineered.
 // At least, that's what this feels like.
-public sealed class ResourceReaderFactory
+public sealed class ResourceReaderRepository
 {
-    public static ResourceReaderFactory SharedBinaryReaders { get; }
+    public static ResourceReaderRepository SharedBinaryReaders { get; }
 
-    private readonly ConcurrentDictionary<IDString64, IResourceReader> _factory = new();
+    private readonly ConcurrentDictionary<IDString64, IResourceReader> _repo = new();
 
-    static ResourceReaderFactory()
+    static ResourceReaderRepository()
     {
-        SharedBinaryReaders = new ResourceReaderFactory();
-        SharedBinaryReaders.TryRegister(new ResourceReader(BonesResource.ResourceID, BonesResourceV0.ReadBinary));
+        SharedBinaryReaders = new ResourceReaderRepository();
+        SharedBinaryReaders.TryRegister(new ResourceReader(BonesResource.ResourceID, BonesResource.BinaryReader));
         SharedBinaryReaders.TryRegister(new VersionedResourceReader(UnitResource.ResourceID, UnitResource.BinaryReaders));
     }
 
     public bool TryRegister(IResourceReader reader)
     {
         ArgumentNullException.ThrowIfNull(reader);
-        return _factory.TryAdd(reader.ResourceID, reader);
+        return _repo.TryAdd(reader.ResourceID, reader);
     }
 
     public bool TryUnregister(IDString64 resourceID)
     {
-        return _factory.TryRemove(resourceID, out _);
+        return _repo.TryRemove(resourceID, out _);
     }
 
     public bool TryGet(IDString64 resourceID, [NotNullWhen(true)] out IResourceReader? reader)
     {
-        return _factory.TryGetValue(resourceID, out reader);
+        return _repo.TryGetValue(resourceID, out reader);
     }
 }

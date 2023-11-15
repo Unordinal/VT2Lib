@@ -29,19 +29,19 @@ public sealed class BonesResourceV0 : BonesResource
         };
     }
 
-    public static void WriteBinary(Stream stream, BonesResourceV0 resource)
+    public static void WriteBinary(in PrimitiveWriter writer, IResource resource)
     {
-        PrimitiveWriter writer = new(stream);
+        var bones = (BonesResourceV0)resource;
 
-        writer.WriteInt32LE(resource.BoneNameHashes.Length);
-        writer.WriteInt32LE(resource.Lods.Length);
-        foreach (var nameHash in resource.BoneNameHashes)
+        writer.WriteInt32LE(bones.BoneNameHashes.Length);
+        writer.WriteInt32LE(bones.Lods.Length);
+        foreach (var nameHash in bones.BoneNameHashes)
             writer.WriteUInt32LE(nameHash);
 
-        foreach (var lod in resource.Lods)
+        foreach (var lod in bones.Lods)
             writer.WriteUInt32LE(lod);
 
-        foreach (var name in resource.BoneNames)
+        foreach (var name in bones.BoneNames)
             writer.WriteNullTermString(name);
     }
 }

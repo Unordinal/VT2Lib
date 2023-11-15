@@ -41,11 +41,11 @@ public class VersionedResourceReader : IResourceReader
         var reader = new PrimitiveReader(stream);
         int version = reader.ReadInt32LE();
         if (!VersionedReaderRepo.TryGet(version, out var readerFunc))
-            throw new NotSupportedException($"No reader found for version {version} of resource '{ResourceID}'");
+            throw new NotSupportedException($"No reader registered for version {version} of resource '{ResourceID}'.");
 
         IResource resource = readerFunc(in reader);
         if (resource.GetResourceID() != ResourceID)
-            throw new InvalidOperationException($"Mismatched type read for '{ResourceID}' reader");
+            throw new InvalidOperationException($"Mismatched type read for '{ResourceID}' reader.");
 
         return resource;
     }

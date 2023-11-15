@@ -13,8 +13,9 @@ public sealed class UnitResourceV186 : UnitResource
         };
     }
 
-    public static void WriteBinary(in PrimitiveWriter writer, UnitResourceV186 resource)
+    public static void WriteBinary(in PrimitiveWriter writer, IResource resource)
     {
+        var unit = (UnitResourceV186)resource;
         throw new NotImplementedException();
     }
 }
