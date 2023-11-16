@@ -1,18 +1,12 @@
-﻿using VT2Lib.Core.IO;
-using VT2Lib.Core.Stingray.IO.Resources.Readers;
-using VT2Lib.Core.Stingray.IO.Resources.Writers;
-
-namespace VT2Lib.Core.Stingray.Resources.Bones;
+﻿namespace VT2Lib.Core.Stingray.Resources.Bones;
 
 public abstract class BonesResource : Resource<BonesResource>
 {
-    public static IDString64 ResourceID { get; } = "bones";
+    public static IDString64 ID { get; } = "bones";
 
-    public static ResourceReaderDelegate BinaryReader { get; } = BonesResourceV0.ReadBinary;
+    public override IDString64 ResourceID => ID;
 
-    public static ResourceWriterDelegate BinaryWriter { get; } = BonesResourceV0.WriteBinary;
-
-    public required uint[] BoneNameHashes { get; set; }
+    public required IDString32[] BoneNameHashes { get; set; }
 
     public required uint[] Lods { get; set; }
 
@@ -21,6 +15,9 @@ public abstract class BonesResource : Resource<BonesResource>
     public IEnumerable<IDString32> GetBoneNameIDStrings()
     {
         for (int i = 0; i < BoneNameHashes.Length; i++)
-            yield return new IDString32(BoneNameHashes[i], BoneNames?.ElementAtOrDefault(i));
+        {
+            var boneNameIDString = BoneNameHashes[i];
+            yield return boneNameIDString.Value ?? new IDString32(boneNameIDString.ID, BoneNames?.ElementAtOrDefault(i));
+        }
     }
 }

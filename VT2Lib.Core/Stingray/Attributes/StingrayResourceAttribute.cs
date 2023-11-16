@@ -12,6 +12,11 @@ public class StingrayResourceAttribute : Attribute
 
     public int Version { get; }
 
+    public StingrayResourceAttribute()
+    {
+        Version = Versionless;
+    }
+
     public StingrayResourceAttribute(int version)
     {
         Version = version;

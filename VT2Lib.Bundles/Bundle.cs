@@ -9,7 +9,7 @@ using VT2Lib.Core.Extensions;
 using VT2Lib.Core.IO;
 using VT2Lib.Core.Stingray;
 using VT2Lib.Core.Stingray.Collections;
-using VT2Lib.Core.Stingray.Extensions;
+using VT2Lib.Core.Stingray.IO.Extensions;
 using VT2Lib.Core.Stingray.Resources;
 
 namespace VT2Lib.Bundles;
@@ -52,7 +52,8 @@ public sealed class Bundle : IDisposable
 
     /// <summary>
     /// Gets the bundle properties.
-    /// Unknown what these are exactly, but they include language abbreviations.
+    /// <para/>
+    /// See <see href="http://bitsquid.blogspot.com/2016/09/a-new-localization-system-for-stingray.html"/>
     /// </summary>
     public IReadOnlyList<IDString64> Properties => _properties.AsReadOnlyEx();
 
@@ -148,9 +149,24 @@ public sealed class Bundle : IDisposable
         }
     }
 
+    /*public IEnumerable<IResource> GetResources(ResourceReaderRepository? binaryReaderFactory = null)
+    {
+        binaryReaderFactory ??= ResourceReaderRepository.SharedBinaryReaders;
+        foreach (var resource in Resources)
+        {
+            foreach (var variant in resource.Variants)
+            {
+                var data = variant.Data;
+                binaryReaderFactory.TryGet(resource.ResourceLocator.Type, out var reader);
+                IResource srResource = reader!.Read(new MemoryStream(data.ToArray()));
+                yield return srResource;
+            }
+        }
+    }*/
+
     public IEnumerable<byte[]> GetResourceData(BundleResourceVariant resourceVariant)
     {
-
+        yield break;
     }
 
     public void Dispose()
@@ -238,10 +254,10 @@ public sealed class Bundle : IDisposable
         var decompressor = getDecompressorFunc(version);
 
         using Stream wrapperStream = CreateWrapperStream(bundleStream, isCompressed, decompressor);
-        using var reader = new PrimitiveReader(wrapperStream);
+        PrimitiveReader reader = new(wrapperStream);
 
         idString64Provider ??= IDStringRepository.Shared;
-        var (properties, resourceMetas) = ReadBundlePropsAndResourceMetas(reader, idString64Provider);
+        var (properties, resourceMetas) = ReadBundlePropsAndResourceMetas(ref reader, idString64Provider);
 
         var bundleHeader = new BundleHeader
         {
@@ -389,10 +405,10 @@ public sealed class Bundle : IDisposable
         var decompressor = getDecompressorFunc(version);
 
         using Stream wrapperStream = CreateWrapperStream(bundleStream, isCompressed, decompressor);
-        using var reader = new PrimitiveReader(wrapperStream);
+        PrimitiveReader reader = new(wrapperStream);
 
         idString64Provider ??= IDStringRepository.Shared;
-        var (properties, resourceMetas) = ReadBundlePropsAndResourceMetas(reader, idString64Provider);
+        var (properties, resourceMetas) = ReadBundlePropsAndResourceMetas(ref reader, idString64Provider);
 
         return new BundleHeader
         {
@@ -405,7 +421,7 @@ public sealed class Bundle : IDisposable
         };
     }
 
-    private static (IDString64[] Properties, BundledResourceMeta[] ResourceMetas) ReadBundlePropsAndResourceMetas(PrimitiveReader reader, IIDString64Provider idString64Provider)
+    private static (IDString64[] Properties, BundledResourceMeta[] ResourceMetas) ReadBundlePropsAndResourceMetas(ref PrimitiveReader reader, IIDString64Provider idString64Provider)
     {
         int resourceCount = reader.ReadInt32LE();
 
