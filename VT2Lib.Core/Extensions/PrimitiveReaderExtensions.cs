@@ -7,19 +7,19 @@ namespace VT2Lib.Core.Extensions;
 
 internal static class PrimitiveReaderExtensions
 {
-    public static T ReadSerializable<T>(this ref PrimitiveReader reader)
+    public static T ReadSerializable<T>(this in PrimitiveReader reader)
         where T : ISerializable<T>
     {
         return T.Deserialize(reader.BaseStream);
     }
 
-    public static T ReadSerializable<T>(this ref PrimitiveReader reader, ISerializer<T> serializer)
+    public static T ReadSerializable<T>(this in PrimitiveReader reader, ISerializer<T> serializer)
     {
         ArgumentNullException.ThrowIfNull(serializer);
         return serializer.Deserialize(reader.BaseStream);
     }
 
-    public static T ReadStruct<T>(this ref PrimitiveReader reader)
+    public static T ReadStruct<T>(this in PrimitiveReader reader)
         where T : unmanaged
     {
         int sizeOfT = Unsafe.SizeOf<T>();
@@ -31,9 +31,24 @@ internal static class PrimitiveReaderExtensions
         return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(buffer.Span));
     }
 
-    public static void ReadSpan<T>(this ref PrimitiveReader reader, scoped Span<T> destination)
+    public static void ReadSpan<T>(this in PrimitiveReader reader, scoped Span<T> destination)
         where T : unmanaged
     {
         reader.ReadBytes(MemoryMarshal.AsBytes(destination));
+    }
+
+    public static bool ReadBoolByte(this in PrimitiveReader reader)
+    {
+        return reader.ReadByte() != 0;
+    }
+
+    public static bool ReadBoolIntLE(this in PrimitiveReader reader)
+    {
+        return reader.ReadInt32LE() != 0;
+    }
+
+    public static bool ReadBoolIntBE(this in PrimitiveReader reader)
+    {
+        return reader.ReadInt32BE() != 0;
     }
 }
