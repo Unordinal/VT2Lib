@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace VT2Lib.Core.Stingray;
+namespace VT2Lib.Core.Stingray.Scene;
 
 public sealed class SkinData
 {

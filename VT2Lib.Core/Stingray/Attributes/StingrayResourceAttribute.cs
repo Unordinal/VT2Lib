@@ -1,7 +1,8 @@
-﻿using System.Reflection;
+﻿namespace VT2Lib.Core.Stingray.Attributes;
 
-namespace VT2Lib.Core.Stingray.Attributes;
-
+// EVAL: Add 'ResourceID'? Would make it possible to 'GetSerializer<TResource>()'
+// for ResourceSerializerProvider without passing in the IDString64 manually.
+// Could also just use reflection for the curent 'ID' constant.
 // EVAL: Usage of an attribute vs a static virtual interface member.
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
 public class StingrayResourceAttribute : Attribute
@@ -13,8 +14,8 @@ public class StingrayResourceAttribute : Attribute
     public int Version { get; }
 
     public StingrayResourceAttribute()
+        : this(Versionless)
     {
-        Version = Versionless;
     }
 
     public StingrayResourceAttribute(int version)

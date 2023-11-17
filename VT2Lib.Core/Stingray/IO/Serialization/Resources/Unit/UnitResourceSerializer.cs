@@ -14,6 +14,9 @@ public sealed class UnitResourceSerializer : ResourceSerializer<UnitResource>
         var versionedSerializersProvider = new VersionedResourceSerializerProvider<UnitResource>(UnitResource.ID);
         versionedSerializersProvider.RegisterSerializer(186, UnitResourceV186Serializer.Default);
 
+        // TODO: This is temporary. 'units\architecture\broken_house\broken_house_roof_4m_01.unit' is version 189.
+        versionedSerializersProvider.RegisterSerializer(189, UnitResourceV186Serializer.Default);
+
         Default = new(versionedSerializersProvider);
     }
 

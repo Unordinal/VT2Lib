@@ -5,13 +5,13 @@ using VT2Lib.Core.Stingray.Resources.Bones;
 
 namespace VT2Lib.Core.Stingray.IO.Serialization.Resources.Bones;
 
-public sealed class BonesSerializer : ResourceSerializer<BonesResource>
+public sealed class BonesResourceSerializer : ResourceSerializer<BonesResource>
 {
-    public static BonesSerializer Default { get; } = new(SerializerFactory.Default.GetSerializer<IDString32>());
+    public static BonesResourceSerializer Default { get; } = new(SerializerFactory.Default.GetSerializer<IDString32>());
 
     private readonly ISerializer<IDString32> _idString32Serializer;
 
-    public BonesSerializer(ISerializer<IDString32> idString32Serializer)
+    public BonesResourceSerializer(ISerializer<IDString32> idString32Serializer)
         : base(BonesResource.ID)
     {
         _idString32Serializer = idString32Serializer;

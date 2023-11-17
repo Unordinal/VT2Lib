@@ -2,7 +2,7 @@
 
 public abstract class BonesResource : Resource<BonesResource>
 {
-    public static IDString64 ID { get; } = "bones";
+    public const string ID = "bones";
 
     public override IDString64 ResourceID => ID;
 

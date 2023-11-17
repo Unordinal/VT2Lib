@@ -1,10 +1,11 @@
-﻿using VT2Lib.Core.Stingray.Scene;
+﻿using VT2Lib.Core.Stingray.Resources.Actor;
+using VT2Lib.Core.Stingray.Scene;
 
 namespace VT2Lib.Core.Stingray.Resources.Unit;
 
 public abstract class UnitResource : Resource<UnitResource>
 {
-    public static IDString64 ID { get; } = "unit";
+    public const string ID = "unit";
 
     public override IDString64 ResourceID => ID;
 
@@ -19,4 +20,6 @@ public abstract class UnitResource : Resource<UnitResource>
     public required SceneGraph SceneGraph { get; set; }
 
     public required MeshObject[] Meshes { get; set; }
+
+    public required ActorResource[] Actors { get; set; }
 }

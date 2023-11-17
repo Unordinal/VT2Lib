@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using VT2Lib.Core.Stingray.IO.Serialization.Resources.Actor;
 using VT2Lib.Core.Stingray.IO.Serialization.Resources.Bones;
 using VT2Lib.Core.Stingray.IO.Serialization.Resources.Unit;
+using VT2Lib.Core.Stingray.Resources;
 
 namespace VT2Lib.Core.Stingray.IO.Serialization.Resources;
 
@@ -14,7 +16,8 @@ public sealed class ResourceSerializerProvider
     static ResourceSerializerProvider()
     {
         Default = new();
-        Default.RegisterSerializer(BonesSerializer.Default);
+        Default.RegisterSerializer(BonesResourceSerializer.Default);
+        Default.RegisterSerializer(ActorResourceSerializer.Default);
         Default.RegisterSerializer(UnitResourceSerializer.Default);
     }
 
@@ -27,7 +30,7 @@ public sealed class ResourceSerializerProvider
     {
         ArgumentNullException.ThrowIfNull(serializer);
         if (_serializers.ContainsKey(serializer.ResourceID))
-            Trace.TraceWarning("A resource serializer for type '{serializer.ResourceID}' is already registered. Replacing.");
+            Trace.TraceWarning($"A resource serializer for type '{serializer.ResourceID}' is already registered. Replacing.");
         
         _serializers[serializer.ResourceID] = serializer;
     }
@@ -43,5 +46,11 @@ public sealed class ResourceSerializerProvider
             throw new ArgumentException($"No resource serializer registered for resource type '{resourceID}'");
 
         return serializer;
+    }
+
+    public ResourceSerializer<TResource> GetSerializer<TResource>(IDString64 resourceID)
+        where TResource : IResource
+    {
+        return (ResourceSerializer<TResource>)GetSerializer(resourceID);
     }
 }

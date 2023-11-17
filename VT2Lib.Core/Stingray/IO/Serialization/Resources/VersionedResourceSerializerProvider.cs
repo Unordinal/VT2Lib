@@ -32,6 +32,9 @@ public sealed class VersionedResourceSerializerProvider<TResource>
 
     public ResourceSerializer<TResource> GetSerializer(int version)
     {
-        return _serializers[version];
+        if (!_serializers.TryGetValue(version, out var serializer))
+            throw new ArgumentException($"No resource serializer of type '{ResourceID}' registered for version '{version}'");
+
+        return serializer;
     }
 }

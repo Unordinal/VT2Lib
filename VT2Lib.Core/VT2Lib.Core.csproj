@@ -11,4 +11,8 @@
     <Folder Include="Stingray\Resources\Texture\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VT2Lib.PhysX\VT2Lib.PhysX.csproj" />
+  </ItemGroup>
+
 </Project>

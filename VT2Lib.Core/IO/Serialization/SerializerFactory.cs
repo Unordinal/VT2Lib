@@ -26,7 +26,7 @@ public sealed class SerializerFactory
     {
         var type = typeof(T);
         if (_factories.ContainsKey(type))
-            Trace.TraceWarning($"SerializerFactory already contains serializer of type {type.Name}. Replacing.");
+            Trace.TraceWarning($"SerializerFactory already contains a serializer for type {type.Name}. Replacing.");
 
         _factories[type] = serializerFactory;
     }

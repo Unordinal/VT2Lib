@@ -1,4 +1,6 @@
 ﻿using VT2Lib.Core.Extensions;
+using VT2Lib.Core.Stingray.IO.Serialization.Resources;
+using VT2Lib.Core.Stingray.Resources;
 
 namespace VT2Lib.Core.IO.Serialization;
 
@@ -41,6 +43,12 @@ internal sealed class ArraySerializer<T> : SerializerBase<T[]>
 internal static class ArraySerializer
 {
     public static ArraySerializer<T> Create<T>(ISerializer<T> serializer)
+    {
+        return new ArraySerializer<T>(serializer.Serialize, serializer.Deserialize);
+    }
+
+    public static ArraySerializer<T> Create<T>(ResourceSerializer<T> serializer)
+        where T : IResource
     {
         return new ArraySerializer<T>(serializer.Serialize, serializer.Deserialize);
     }

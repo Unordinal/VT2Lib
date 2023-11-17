@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using VT2Lib.Core.IO;
 using VT2Lib.Core.IO.Serialization;
+using VT2Lib.Core.Stingray.Scene;
 
 namespace VT2Lib.Core.Stingray.IO.Serialization;
 
