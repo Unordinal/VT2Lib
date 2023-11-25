@@ -13,4 +13,14 @@ public sealed class MeshObject
     public RenderableFlags Flags { get; set; }
 
     public BoundingVolume BoundingVolume { get; set; }
+
+    public bool HasGeometry()
+    {
+        return GeometryIndex > 0;
+    }
+
+    public bool HasSkin()
+    {
+        return SkinIndex > 0;
+    }
 }

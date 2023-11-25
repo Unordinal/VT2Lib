@@ -16,6 +16,6 @@ public sealed class VertexBuffer
 
     public override string ToString()
     {
-        return $"{Channel}[{Count}]";
+        return $"{Channel}[{Count}, {Stride}]";
     }
 }

@@ -21,12 +21,25 @@ internal static partial class HashDictUtil
         {
             foreach (var line in File.ReadLines(dict))
             {
-                if (line.Length < 16)
+                var split = line.Split((char[]?)null, 2, StringSplitOptions.TrimEntries);
+                if (split.Length == 1)
                     continue;
 
-                ulong hash = ulong.Parse(line[..16], NumberStyles.HexNumber);
-                string hashValue = line[18..];
-                IDStringRepository.Shared.TryAdd(new IDString64(hash, hashValue));
+                int hashSize = split[0].Length == 16 ? 64 : 32;
+                if (hashSize == 64)
+                {
+                    ulong hash = ulong.Parse(line[..16], NumberStyles.HexNumber);
+                    string hashValue = split[1];
+
+                    IDStringRepository.Shared.TryAdd(new IDString64(hash, hashValue));
+                }
+                else
+                {
+                    uint hash = uint.Parse(line[..8], NumberStyles.HexNumber);
+                    string hashValue = split[1];
+
+                    IDStringRepository.Shared.TryAdd(new IDString32(hash, hashValue));
+                }
             }
         }
     }
@@ -42,6 +55,6 @@ internal static partial class HashDictUtil
         }
     }
 
-    [GeneratedRegex(@"vt2bu_.*\.txt$")]
+    [GeneratedRegex(@"vt2lib_hashdict(?<hashSize>32|64)?.*\.txt$")]
     private static partial Regex HashDictNameRegex();
 }

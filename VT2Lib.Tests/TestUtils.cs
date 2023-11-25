@@ -60,6 +60,11 @@ internal static partial class TestUtils
     {
         return GetTestBundleNames(TestPaths.MixedBundleFilesPath);
     }
+    
+    public static IEnumerable<object[]> GetTestManyBundleNames()
+    {
+        return GetTestBundleNames(TestPaths.TestManyBundleFilesPath);
+    }
 
     public static bool IsRestOfStreamZeroes(Stream stream)
     {

@@ -19,6 +19,11 @@ public sealed class BatchRange : ISerializable<BatchRange>
 
     public required uint BoneSet { get; set; }
 
+    public ReadOnlySpan<byte> GetSlicedIndexBuffer(IndexBuffer indexBuffer, int indicesPerFace)
+    {
+        return indexBuffer.Data.AsSpan((int)Start * indicesPerFace, (int)Size * indicesPerFace);
+    }
+
     public static void Serialize(Stream stream, BatchRange value)
     {
         var writer = new PrimitiveWriter(stream);

@@ -111,6 +111,13 @@ public sealed class Bundle : IDisposable
         IDString64 nameId = resource.ResourceLocator.Name;
         string typeStr = typeId.Value ?? typeId.ID.ToString("x16");
         string nameStr = nameId.Value ?? nameId.ID.ToString("x16");
+        if (nameId.Value is null)
+        {
+            if (typeId.Value is null)
+                nameStr = $".unknown/{nameStr[..2]}/{nameStr[2..4]}/{nameStr}";
+            else
+                nameStr = $".unknown/{typeId.Value}/{nameStr[0..2]}/{nameStr[2..4]}/{nameStr}";
+        }
 
         bool appendVariantType = resource.Variants.Count > 1;
         for (int i = 0; i < resource.Variants.Count; i++)

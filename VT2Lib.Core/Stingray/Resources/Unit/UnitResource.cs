@@ -22,4 +22,21 @@ public abstract class UnitResource : Resource<UnitResource>
     public required MeshObject[] Meshes { get; set; }
 
     public required ActorResource[] Actors { get; set; }
+
+    public MeshGeometry GetObjectGeometry(MeshObject meshObject)
+    {
+        if (!meshObject.HasGeometry())
+            throw new ArgumentOutOfRangeException(nameof(meshObject), "No geometry exists for the mesh object.");
+
+        return MeshGeometries[meshObject.GeometryIndex - 1];
+    }
+
+    public SkinData GetObjectSkin(MeshObject meshObject)
+    {
+        if (!meshObject.HasSkin())
+            throw new ArgumentOutOfRangeException(nameof(meshObject), "No skin data exists for the mesh object.");
+
+        uint skinIndex = meshObject.SkinIndex - (uint)MeshGeometries.Length;
+        return SkinDatas[skinIndex - 1];
+    }
 }

@@ -69,10 +69,10 @@ public partial class BundlesTests
     }
 
     [Theory]
-    [MemberData(nameof(GetMixedBundleNamesLimited), null)]
+    [MemberData(nameof(GetTestManyBundleNamesLimited), null)]
     public void ExtractResources(string bundleName)
     {
-        bundleName = Path.Combine(TestPaths.MixedBundleFilesPath, bundleName);
+        bundleName = Path.Combine(TestPaths.TestManyBundleFilesPath, bundleName);
         HashDictUtil.PrepareKnownHashes();
 
         var bundle = Bundle.OpenBundle(bundleName);
@@ -87,6 +87,15 @@ public partial class BundlesTests
     public static IEnumerable<object[]> GetMixedBundleNamesLimited(int? count = null)
     {
         var bundleNames = TestUtils.GetMixedBundleNames();
+        if (count.HasValue)
+            bundleNames = bundleNames.Take(count.Value);
+
+        return bundleNames;
+    }
+    
+    public static IEnumerable<object[]> GetTestManyBundleNamesLimited(int? count = null)
+    {
+        var bundleNames = TestUtils.GetTestManyBundleNames();
         if (count.HasValue)
             bundleNames = bundleNames.Take(count.Value);
 

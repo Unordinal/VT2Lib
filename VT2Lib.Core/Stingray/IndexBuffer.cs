@@ -1,4 +1,6 @@
-﻿using VT2Lib.Core.IO;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using VT2Lib.Core.IO;
 using VT2Lib.Core.IO.Serialization;
 
 namespace VT2Lib.Core.Stingray;
@@ -18,6 +20,47 @@ public sealed class IndexBuffer : ISerializable<IndexBuffer>
     public override string ToString()
     {
         return $"{nameof(IndexBuffer)}<{IndexFormat}>[{IndexCount}]";
+    }
+
+    public IEnumerable<int> EnumerateIndices()
+    {
+        int stride = IndexFormat switch
+        {
+            IndexFormat.Index32 => sizeof(int),
+            IndexFormat.Index16 => sizeof(short),
+            _ => throw new InvalidOperationException($"Unsupported index format '{IndexFormat}'")
+        };
+
+        for (int i = 0; i < Data.Length; i += stride)
+        {
+            int index = IndexFormat is IndexFormat.Index32
+                ? Unsafe.ReadUnaligned<int>(ref Data[i])
+                : Unsafe.ReadUnaligned<short>(ref Data[i]);
+
+            yield return index;
+        }
+    }
+
+    public IEnumerable<int> EnumerateIndices(BatchRange batchRange, int indicesPerFace)
+    {
+        int stride = IndexFormat switch
+        {
+            IndexFormat.Index32 => sizeof(int),
+            IndexFormat.Index16 => sizeof(short),
+            _ => throw new InvalidOperationException($"Unsupported index format '{IndexFormat}'")
+        };
+
+        int indexStart = (int)batchRange.Start * indicesPerFace;
+        int indexCount = (int)batchRange.Size * indicesPerFace;
+        int indexEnd = indexStart + indexCount;
+        for (int i = indexStart; i < indexEnd; i += stride)
+        {
+            int index = IndexFormat is IndexFormat.Index32
+                ? Unsafe.ReadUnaligned<int>(ref Data[i])
+                : Unsafe.ReadUnaligned<short>(ref Data[i]);
+
+            yield return index;
+        }
     }
 
     public static void Serialize(Stream stream, IndexBuffer value)

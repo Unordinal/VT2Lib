@@ -47,7 +47,7 @@ internal sealed class UnitResourceV186Serializer : ResourceSerializer<UnitResour
             SimpleAnimationGroups = reader.ReadSerializable(_simpleAnimationGroupsSerializer),
             SceneGraph = reader.ReadSerializable(_sceneGraphSerializer),
             Meshes = reader.ReadSerializable(_meshObjectsSerializer),
-            Actors = reader.ReadSerializable(_actorResourcesSerializer),
+            Actors = null!, //reader.ReadSerializable(_actorResourcesSerializer), // uuugghhh, no thanks
         };
     }
 }

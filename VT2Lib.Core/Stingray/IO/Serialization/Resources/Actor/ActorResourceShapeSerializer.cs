@@ -78,8 +78,12 @@ internal class ActorResourceShapeSerializer : ISerializer<Shape>
                 Trace.WriteLine("Reading Actor ConvexShape");
                 ConvexShape convexShape = new() { Type = type };
                 DeserializeCommon(in reader, convexShape);
-                PhysX.GeomUtils.Gu.ConvexMesh guConvexMesh = new();
-                bool guConvexSuccess = guConvexMesh.Load(reader.BaseStream);
+                using var physx = new Native.PhysX.PhysXCommon_64(@"G:\Games\Steam\steamapps\common\Warhammer Vermintide 2\binaries\PhysXCommon_64.dll");
+                bool guConvexSuccess = physx.PhysX_Gu_ConvexMesh_Load(ref stream);
+                physx.Dispose();
+
+                /*PhysX.GeomUtils.Gu.ConvexMesh guConvexMesh = new();
+                bool guConvexSuccess = guConvexMesh.Load(reader.BaseStream);*/
                 if (!guConvexSuccess)
                 {
                     Trace.TraceError("Failed loading ConvexMesh shape; serialization will fail.");
