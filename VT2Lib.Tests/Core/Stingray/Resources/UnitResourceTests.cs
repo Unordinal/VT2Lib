@@ -63,7 +63,7 @@ public class UnitResourceTests
 
         UnitAssimpSceneBuilder builder = UnitAssimpSceneBuilder.FromUnitResource(unitResource);
         PrintNodeTree(builder._aiScene.RootNode, 0);
-        Assimp.AssimpContext ai = new Assimp.AssimpContext();
+        Assimp.AssimpContext ai = new();
         Directory.CreateDirectory(".conv_units");
         ai.ExportFile(builder.GetScene(), $".conv_units/{Path.GetFileName(unitFile)}.fbx", "fbx");
 
@@ -84,60 +84,11 @@ public class UnitResourceTests
         }*/
     }
 
-    private static readonly string[] anyMatchingOfThese =
-    {
-        "root",
-        "brush",
-        "veg",
-        "empty",
-        "point",
-        "base",
-        "g_LODS",
-        "g_LOD",
-        "g_LODBASE",
-        "g_LOD_BASE",
-        "g_body_LOD",
-        "g_body_LODS",
-        "g_body_LODBASE",
-        "g_body_LODSBASE",
-        "c_shadowcatcher",
-        "c_bounds",
-        "g_body_LOD4",
-        "g_body_LOD5",
-        "j_tailbase",
-        "j_eyeleft",
-        "j_eye_left",
-        "j_lefteye",
-        "j_left_eye",
-        "j_lefteye_target",
-        "j_lefteye_tgt",
-        "j_nose",
-        "j_cheekleft",
-        "j_cheek_left",
-        "j_leftcheek",
-        "j_left_cheek",
-        "j_hinge",
-        "j_door",
-        "j_leftdoor",
-        "j_rightdoor",
-        "j_handle",
-        "j_rightcollar",
-        "j_leftcollar",
-        "j_chest1",
-        "j_chest2",
-        "j_chest3",
-        "j_spine1",
-        "j_spine2",
-        "j_spine3",
-        "j_spine4",
-        "j_spine5",
-    };
-
     private static IDString32[]? hashedMatching;
 
     private void PrintAnyMatchingHashes(SceneGraph nodes)
     {
-        hashedMatching ??= anyMatchingOfThese.Select(s => new IDString32(s)).ToArray();
+        hashedMatching ??= File.ReadLines(HashDictUtil.HashSearchListFilePath).Select(l => new IDString32(l)).ToArray();
         foreach (var node in nodes.Nodes)
             if (node.Name.Value is null && hashedMatching.Contains(node.Name))
                 _output.WriteLine($"{node.Name.ID:x8} {hashedMatching.First(id => id == node.Name).Value}");

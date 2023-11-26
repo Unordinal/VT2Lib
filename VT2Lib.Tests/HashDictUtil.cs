@@ -8,6 +8,8 @@ namespace VT2Lib.Tests;
 internal static partial class HashDictUtil
 {
     private static readonly string TestHashDictionariesPath = Path.Combine(ProjectSource.ProjectDirectory, @"TestFiles\Hash Dictionaries\");
+    public static readonly string HashSearchListFilePath = Path.Combine(TestHashDictionariesPath, @"vt2lib_hash_search_list.txt");
+
 
     private static bool _prepared = false;
 

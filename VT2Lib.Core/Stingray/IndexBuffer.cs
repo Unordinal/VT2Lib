@@ -35,7 +35,7 @@ public sealed class IndexBuffer : ISerializable<IndexBuffer>
         {
             int index = IndexFormat is IndexFormat.Index32
                 ? Unsafe.ReadUnaligned<int>(ref Data[i])
-                : Unsafe.ReadUnaligned<short>(ref Data[i]);
+                : Unsafe.ReadUnaligned<ushort>(ref Data[i]);
 
             yield return index;
         }
@@ -53,11 +53,12 @@ public sealed class IndexBuffer : ISerializable<IndexBuffer>
         int indexStart = (int)batchRange.Start * indicesPerFace;
         int indexCount = (int)batchRange.Size * indicesPerFace;
         int indexEnd = indexStart + indexCount;
-        for (int i = indexStart; i < indexEnd; i += stride)
+
+        for (int i = indexStart * stride; i < indexEnd * stride; i += stride)
         {
             int index = IndexFormat is IndexFormat.Index32
                 ? Unsafe.ReadUnaligned<int>(ref Data[i])
-                : Unsafe.ReadUnaligned<short>(ref Data[i]);
+                : Unsafe.ReadUnaligned<ushort>(ref Data[i]);
 
             yield return index;
         }

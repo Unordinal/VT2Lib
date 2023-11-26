@@ -1,4 +1,5 @@
-﻿using VT2Lib.Core.Stingray.Resources.Actor;
+﻿using System.Diagnostics.CodeAnalysis;
+using VT2Lib.Core.Stingray.Resources.Actor;
 using VT2Lib.Core.Stingray.Scene;
 
 namespace VT2Lib.Core.Stingray.Resources.Unit;
@@ -31,6 +32,13 @@ public abstract class UnitResource : Resource<UnitResource>
         return MeshGeometries[meshObject.GeometryIndex - 1];
     }
 
+    public bool TryGetObjectGeometry(MeshObject meshObject, [NotNullWhen(true)] out MeshGeometry? geometry)
+    {
+        bool hasGeometry = meshObject.HasGeometry();
+        geometry = hasGeometry ? MeshGeometries[meshObject.GeometryIndex - 1] : null;
+        return hasGeometry;
+    }
+
     public SkinData GetObjectSkin(MeshObject meshObject)
     {
         if (!meshObject.HasSkin())
@@ -38,5 +46,13 @@ public abstract class UnitResource : Resource<UnitResource>
 
         uint skinIndex = meshObject.SkinIndex - (uint)MeshGeometries.Length;
         return SkinDatas[skinIndex - 1];
+    }
+
+    public bool TryGetObjectSkin(MeshObject meshObject, [NotNullWhen(true)] out SkinData? skin)
+    {
+        bool hasSkin = meshObject.HasSkin();
+        uint skinIndex = meshObject.SkinIndex - (uint)MeshGeometries.Length;
+        skin = hasSkin ? SkinDatas[skinIndex - 1] : null;
+        return hasSkin;
     }
 }

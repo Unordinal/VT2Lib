@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using VT2Lib.Core.IO;
 using VT2Lib.Core.IO.Serialization;
 
