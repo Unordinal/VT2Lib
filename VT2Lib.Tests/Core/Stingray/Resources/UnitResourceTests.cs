@@ -62,19 +62,19 @@ public class UnitResourceTests
         PrintAnyMatchingHashes(unitResource.SceneGraph);
 
         UnitAssimpSceneBuilder builder = UnitAssimpSceneBuilder.FromUnitResource(unitResource);
-        PrintNodeTree(builder._aiScene.RootNode, 0);
+        //PrintNodeTree(builder._aiScene.RootNode, 0);
         Assimp.AssimpContext ai = new();
         Directory.CreateDirectory(".conv_units");
         ai.ExportFile(builder.GetScene(), $".conv_units/{Path.GetFileName(unitFile)}.fbx", "fbx");
 
-        void PrintNodeTree(Assimp.Node node, int depth)
+        /*void PrintNodeTree(Assimp.Node node, int depth)
         {
             _output.WriteLine($"{new string(' ', depth)}{node.Name} ({node.ChildCount})");
             foreach (var n in node.Children)
                 PrintNodeTree(n, depth + 1);
-        }
+        }*/
 
-        PrintTree(unitResource, 0);
+        //PrintTree(unitResource, 0);
         /*foreach (var node in resource.SceneGraph.Nodes)
         {
             _output.WriteLine($"[{node.Name}]:");
@@ -85,13 +85,18 @@ public class UnitResourceTests
     }
 
     private static IDString32[]? hashedMatching;
+    private static HashDictUtil.HashedSearchDict? _modelHashedSearchDict;
 
     private void PrintAnyMatchingHashes(SceneGraph nodes)
     {
-        hashedMatching ??= File.ReadLines(HashDictUtil.HashSearchListFilePath).Select(l => new IDString32(l)).ToArray();
-        foreach (var node in nodes.Nodes)
+        //hashedMatching ??= File.ReadLines(HashDictUtil.HashSearchListFilePath).Select(l => new IDString32(l)).ToArray();
+        /*foreach (var node in nodes.Nodes)
             if (node.Name.Value is null && hashedMatching.Contains(node.Name))
-                _output.WriteLine($"{node.Name.ID:x8} {hashedMatching.First(id => id == node.Name).Value}");
+                _output.WriteLine($"{node.Name.ID:x8} {hashedMatching.First(id => id == node.Name).Value}");*/
+        _modelHashedSearchDict ??= HashDictUtil.GetSearchDict();
+        foreach (var node in nodes.Nodes)
+            if (node.Name.Value is null && _modelHashedSearchDict.TryFindHash(node.Name.ID, out var idString))
+                _output.WriteLine($"{node.Name.ID:x8} {idString}");
     }
 
     private void PrintTree(UnitResource resource, int index, int indent = 0)
@@ -171,9 +176,9 @@ public class UnitResourceTests
 
         public int GeoIndex { get; }
 
-        public BatchRange[] BatchRanges { get; }
+        public BatchRange[]? BatchRanges { get; }
 
-        public IDString32[] Materials { get; }
+        public IDString32[]? Materials { get; }
 
         public SkinData? Skin { get; }
 
@@ -205,7 +210,7 @@ public class UnitResourceTests
             if (Geometry is not null)
             {
                 var materials = Materials;
-                var batchRangesStr = BatchRanges.Select((br, i) => $"BR_{i}: <Range: ({br.Start}, {br.Size}); Mat: {materials[br.MaterialIndex]}; BoneSet: {br.BoneSet}>");
+                var batchRangesStr = BatchRanges!.Select((br, i) => $"BR_{i}: <Range: ({br.Start}, {br.Size}); Mat: {materials![br.MaterialIndex]}; BoneSet: {br.BoneSet}>");
                 result += $" (Geo[{GeoIndex}]: [{string.Join("; ", batchRangesStr)}])";
             }
 

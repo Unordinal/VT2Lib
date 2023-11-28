@@ -1,7 +1,11 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using VT2Lib.Core.Stingray;
 using VT2Lib.Core.Stingray.Collections;
+using VT2Lib.Core.Stingray.Hashing;
 
 namespace VT2Lib.Tests;
 
@@ -9,6 +13,7 @@ internal static partial class HashDictUtil
 {
     private static readonly string TestHashDictionariesPath = Path.Combine(ProjectSource.ProjectDirectory, @"TestFiles\Hash Dictionaries\");
     public static readonly string HashSearchListFilePath = Path.Combine(TestHashDictionariesPath, @"vt2lib_hash_search_list.txt");
+    public static readonly string ModelHashSearchDictFilePath = Path.Combine(TestHashDictionariesPath, @"vt2lib_model_hash_search_dict.json");
 
 
     private static bool _prepared = false;
@@ -46,6 +51,11 @@ internal static partial class HashDictUtil
         }
     }
 
+    public static HashedSearchDict GetSearchDict()
+    {
+        return new HashedSearchDict(ModelHashSearchDictFilePath);
+    }
+
     private static IEnumerable<string> GetHashDictFiles()
     {
         foreach (var file in Directory.EnumerateFiles(TestHashDictionariesPath))
@@ -59,4 +69,34 @@ internal static partial class HashDictUtil
 
     [GeneratedRegex(@"vt2lib_hashdict(?<hashSize>32|64)?.*\.txt$")]
     private static partial Regex HashDictNameRegex();
+
+    internal class HashedSearchDict
+    {
+        private readonly Dictionary<uint, IDString32> _hashedDict;
+
+        internal HashedSearchDict(string jsonFilePath)
+        {
+            using var file = File.OpenRead(jsonFilePath);
+            var json = JsonSerializer.Deserialize<JsonObject>(file);
+            var prefixesArr = json!["prefixes"]!.AsArray();
+            var suffixesArr = json!["suffixes"]!.AsArray();
+            var baseArr = json!["base"]!.AsArray();
+            prefixesArr.Add(string.Empty);
+            suffixesArr.Add(string.Empty);
+
+            var combined = from prefixVal in prefixesArr
+                           from baseVal in baseArr
+                           from suffixVal in suffixesArr
+                           select $"{prefixVal}{baseVal}{suffixVal}";
+
+            _hashedDict = combined
+                .Select(v => new IDString32(v))
+                .ToDictionary(ids => ids.ID);
+        }
+
+        public bool TryFindHash(uint hash, out IDString32 idString)
+        {
+            return _hashedDict.TryGetValue(hash, out idString);
+        }
+    }
 }
