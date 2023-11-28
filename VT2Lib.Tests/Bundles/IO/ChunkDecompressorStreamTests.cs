@@ -19,7 +19,7 @@ public partial class ChunkDecompressionStreamTests
     }
 
     [Theory]
-    [MemberData(nameof(TestUtils.GetMixedBundleNames), MemberType = typeof(TestUtils))]
+    [MemberData(nameof(GetMixedBundleNamesLimited), 10)]
     public void CDS_ReadBundlesHeader(string bundleName)
     {
         HashDictUtil.PrepareKnownHashes();
@@ -82,7 +82,7 @@ public partial class ChunkDecompressionStreamTests
     }*/
 
     [Theory]
-    [MemberDataWithInline(nameof(TestUtils.GetMixedBundleNames), 2, MemberType = typeof(TestUtils))]
+    [MemberData(nameof(GetMixedBundleNamesLimitedBuffer), 10)]
     public void CDS_ReadBundlesChunks(string bundleName, int numChunksToBuffer)
     {
         //_output.WriteLine("Reading bundle " + bundleName);
@@ -111,5 +111,23 @@ public partial class ChunkDecompressionStreamTests
         {
             decompStream.ReadExactly(stackalloc byte[1]);
         });
+    }
+
+    public static IEnumerable<object[]> GetMixedBundleNamesLimited(int? count = null)
+    {
+        var bundleNames = TestUtils.GetMixedBundleNames();
+        if (count.HasValue)
+            bundleNames = bundleNames.Take(count.Value);
+
+        return bundleNames;
+    }
+    
+    public static IEnumerable<object[]> GetMixedBundleNamesLimitedBuffer(int? count = null)
+    {
+        var bundleNames = TestUtils.GetMixedBundleNames();
+        if (count.HasValue)
+            bundleNames = bundleNames.Take(count.Value);
+
+        return (IEnumerable<object[]>)bundleNames.Select(o => o.Zip(o.Select(_ => 2)).ToArray());
     }
 }

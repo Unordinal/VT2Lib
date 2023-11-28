@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using VT2Lib.Core.Extensions;
 using VT2Lib.Core.Numerics;
@@ -27,10 +26,13 @@ internal sealed unsafe class UnitAssimpSceneBuilder : IDisposable
     private readonly Dictionary<IDString32, int> _sceneMaterialIndexMap = [];
     private readonly Dictionary<(MeshGeometry, BatchRange), int> _sceneMeshIndexMap = [];
     private readonly Dictionary<int, List<int>> _sceneNodeToMeshIndicesMap = [];
+    private Ai.Node[] _sceneNodeFlatList;
 
-    public UnitAssimpSceneBuilder()
+    public UnitAssimpSceneBuilder(UnitResource unitResource)
     {
         _aiScene = new Ai.Scene();
+        _aiScene.Metadata["UnitScaleFactor"] = new Ai.Metadata.Entry(Ai.MetaDataType.Float, 100.0f);
+        _sceneNodeFlatList = CreateAndAddNodes(unitResource);
     }
 
     ~UnitAssimpSceneBuilder()
@@ -45,25 +47,34 @@ internal sealed unsafe class UnitAssimpSceneBuilder : IDisposable
 
     private void CreateAndAddToScene(UnitResource unitResource)
     {
+        DebugEx.Assert(_sceneNodeFlatList is not null && _sceneNodeFlatList.Length > 0);
+
         for (int i = 0; i < unitResource.Meshes.Length; i++)
         {
             MeshObject meshObj = unitResource.Meshes[i];
             if (!meshObj.HasGeometry())
                 continue;
 
+            Ai.Node aiNode = _sceneNodeFlatList[meshObj.NodeIndex];
             MeshGeometry meshGeo = unitResource.GetObjectGeometry(meshObj);
             List<int> sceneMeshIndices = _sceneNodeToMeshIndicesMap[meshObj.NodeIndex] = [];
+
             for (int j = 0; j < meshGeo.BatchRanges.Length; j++)
             {
                 BatchRange batchRange = meshGeo.BatchRanges[j];
+
                 var (sceneMeshIndex, aiMesh) = GetOrAddAiMesh(meshGeo, batchRange);
                 if (!sceneMeshIndices.Contains(sceneMeshIndex))
                     sceneMeshIndices.Add(sceneMeshIndex);
+
+                aiNode.MeshIndices.Add(sceneMeshIndex);
             }
+
+            if (meshObj.HasSkin())
+                CreateAndAddAiBones(unitResource, meshObj);
         }
 
-        var aiNodeList = CreateAndAddNodes(unitResource);
-        AddMeshesToNodes(unitResource, aiNodeList);
+        //AddMeshesToNodes(unitResource, _sceneNodeFlatList);
     }
 
     private (int SceneMeshIndex, Ai.Mesh AiMesh) GetOrAddAiMesh(MeshGeometry meshGeometry, BatchRange batchRange)
@@ -116,10 +127,88 @@ internal sealed unsafe class UnitAssimpSceneBuilder : IDisposable
         };
     }
 
-    private void CreateBones(UnitResource unitResource)
+    private void CreateAndAddAiBones(UnitResource unitResource, MeshObject meshObject)
     {
-        foreach (var skin in unitResource.SkinDatas)
+        DebugEx.Assert(_sceneNodeFlatList is not null);
+        DebugEx.Assert(meshObject.HasGeometry() && meshObject.HasSkin());
+
+        MeshGeometry meshGeo = unitResource.GetObjectGeometry(meshObject);
+        VertexBuffer? vbBlendIndices = meshGeo.VertexBuffers.FirstOrDefault(vb => vb.Channel.Component is VertexComponent.BlendIndices);
+        VertexBuffer? vbBlendWeights = meshGeo.VertexBuffers.FirstOrDefault(vb => vb.Channel.Component is VertexComponent.BlendWeights);
+
+        if (vbBlendIndices is null || vbBlendWeights is null)
+            throw new InvalidDataException($"Missing vertex weight data for object with assigned SkinData (Missing: {DebugEx.ListNulls(vbBlendIndices, vbBlendWeights)})");
+        if (vbBlendIndices.Channel.Type != ChannelType.UInt1) // ChannelType.UByte4
+            throw new InvalidDataException($"Indices are in unexpected format '{vbBlendIndices.Channel.Type}'; expected '{ChannelType.UInt1}'");
+        if (vbBlendWeights.Channel.Type != ChannelType.Half4)
+            throw new InvalidDataException($"Weights are in unexpected format '{vbBlendWeights.Channel.Type}'; expected '{ChannelType.Half4}'");
+
+        DebugEx.Assert(vbBlendIndices.Count == vbBlendWeights.Count);
+        DebugEx.Assert(vbBlendIndices.Stride * 2 == vbBlendWeights.Stride);
+        DebugEx.Assert(vbBlendIndices.Data.Length * 2 == vbBlendWeights.Data.Length);
+
+        ReadOnlySpan<Vector4A<byte>> blendIndices = MemoryMarshal.Cast<byte, Vector4A<byte>>(vbBlendIndices.Data);
+        ReadOnlySpan<Vector4A<Half>> blendWeights = MemoryMarshal.Cast<byte, Vector4A<Half>>(vbBlendWeights.Data);
+        DebugEx.Assert(blendIndices.Length == blendWeights.Length);
+
+        IndexBuffer ibVertexIndices = meshGeo.IndexBuffer;
+        ReadOnlySpan<int> vertexIndices = ibVertexIndices.EnumerateIndices().ToArray();
+        SkinData skinData = unitResource.GetObjectSkin(meshObject);
+#if DEBUG
+        HashSet<uint> seenBoneSets = [];
+#endif
+        foreach (BatchRange batchRange in meshGeo.BatchRanges)
         {
+#if DEBUG
+            DebugEx.Assert(seenBoneSets.Add(batchRange.BoneSet));
+#endif
+            var batchVertexIndices = vertexIndices.Slice(batchRange.GetVertStartIndex(), batchRange.GetVertCount());
+
+            var bones = skinData.GetBonesForSet(batchRange.BoneSet).ToArray();
+            var aiBones = bones.Select(b =>
+            {
+                var node = unitResource.SceneGraph.Nodes[b.NodeIndex];
+                var nodeName = node.Name.ToString();
+                var ibm = b.InvBindMatrix.ToAssimp();
+                var aiBone = new Ai.Bone(nodeName, ibm, null);
+
+                var aiMeshIndex = _sceneMeshIndexMap[(meshGeo, batchRange)];
+                var aiMesh = _aiScene.Meshes[aiMeshIndex];
+
+                /*int idxOfMesh = unitResource.Meshes.IndexOf(m => m.NodeIndex == b.NodeIndex);
+                if (idxOfMesh == -1)
+                    throw new InvalidOperationException("No mesh found with node index of bone");
+                var boneMeshObj = unitResource.Meshes[idxOfMesh];
+                if (!boneMeshObj.HasGeometry() || !boneMeshObj.HasSkin())
+                    throw new InvalidOperationException("Found bone mesh object missing geometry or skin");
+                var boneMeshGeo = unitResource.GetObjectGeometry(boneMeshObj);*/
+
+                aiMesh.Bones.Add(aiBone); // wrong? this is adding to _this_ mesh a new bone. we probably want to add to 'b.NodeIndex'... I think? oh I don't knowwwww, I did it this way last time apparently and it worked okay
+                return aiBone;
+            }).ToArray();
+
+            for (int i = 0; i < batchVertexIndices.Length; i++)
+            {
+                int vertexIndex = batchVertexIndices[i];
+                // 'bone' refers to an inverse bind matrix in this case; they're interchangeable.
+                // Each index in a bone indices vector [x, y, z, w] is a byte index into the list of matrices
+                // in the skin data.
+                // Each vertex weight is a weight for that bone.
+                // See https://learn.microsoft.com/en-us/windows/win32/direct3d9/indexed-vertex-blending
+                var boneIndices = blendIndices[vertexIndex];
+                var boneWeights = blendWeights[vertexIndex];
+
+                for (int j = 0; j < Vector4A.Count; j++)
+                {
+                    var boneIndex = boneIndices[j];
+                    var boneWeight = boneWeights[j];
+                    if (boneWeight == Half.Zero)
+                        continue;
+
+                    var vertexWeight = new Ai.VertexWeight(vertexIndex, (float)boneWeight);
+                    aiBones[boneIndex].VertexWeights.Add(vertexWeight);
+                }
+            } 
         }
     }
 
@@ -157,57 +246,10 @@ internal sealed unsafe class UnitAssimpSceneBuilder : IDisposable
                 continue;
 
             var aiNode = aiNodeList[mesh.NodeIndex];
-            aiNode.MeshIndices.AddRange(_sceneNodeToMeshIndicesMap[(int)mesh.NodeIndex]);
+            aiNode.MeshIndices.AddRange(_sceneNodeToMeshIndicesMap[mesh.NodeIndex]);
         }
     }
 
-    /*private void CreateNodeGraph(UnitResource unitResource)
-    {
-        // oh my god please kill all of this with fire it doesn't deserve to live
-        _aiScene.RootNode = new Ai.Node("Assimp Root");
-        var aiNodes = new List<Ai.Node>
-        {
-            _aiScene.RootNode
-        };
-        for (int i = 0; i < unitResource.SceneGraph.Nodes.Length; i++)
-        {
-            var sceneNode = unitResource.SceneGraph.Nodes[i];
-            var aiNode = new Ai.Node(sceneNode.Name.ToString())
-            {
-                Transform = Matrix4x4.Transpose(sceneNode.LocalTransform).ToAssimp()
-            };
-            if (_sceneNodeToMeshIndicesMap.TryGetValue(i, out var value))
-                aiNode.MeshIndices.AddRange(value);
-            aiNodes.Add(aiNode);
-        }
-        aiNodes[0].Children.Add(aiNodes[1]);
-        for (int i = 0; i < aiNodes.Count - 1; i++)
-        {
-            var aiNode = aiNodes[i + 1];
-            var sceneNode = unitResource.SceneGraph.Nodes[i];
-            if (sceneNode.ParentType == ParentType.Internal)
-            {
-                aiNodes[sceneNode.ParentIndex + 1].Children.Add(aiNode);
-            }
-        }
-    }*/
-
-    private void CreateNodes(UnitResource unitResource, int graphIndex, Ai.Node aiLastNode)
-    {
-        if (graphIndex >= unitResource.SceneGraph.Nodes.Length)
-            return;
-
-        var sceneNode = unitResource.SceneGraph.Nodes[graphIndex];
-        var aiNode = new Ai.Node(sceneNode.Name.ToString());
-        /*if (sceneNode.ParentType == ParentType.Internal)
-        {
-            var parentSceneNode = unitResource.SceneGraph.Nodes[sceneNode.ParentIndex];
-            var aiParentNode = _aiScene.RootNode.FindNode(parentSceneNode.Name.ToString());
-            aiParentNode.Children.Add()
-        }*/
-        aiLastNode.Children.Add(aiNode);
-    }
-    
     private static void ClearMeshVertexBuffers(Ai.Mesh mesh)
     {
         mesh.Vertices.Clear();
@@ -293,8 +335,10 @@ internal sealed unsafe class UnitAssimpSceneBuilder : IDisposable
 
     public static UnitAssimpSceneBuilder FromUnitResource(UnitResource unitResource)
     {
-        var builder = new UnitAssimpSceneBuilder();
+        var builder = new UnitAssimpSceneBuilder(unitResource);
         builder.CreateAndAddToScene(unitResource);
+
+        AssimpSceneValidator.ValidateScene(builder.GetScene());
         return builder;
     }
 

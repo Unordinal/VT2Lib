@@ -5,23 +5,31 @@ namespace VT2Lib.Core.Stingray;
 
 public sealed class BatchRange : ISerializable<BatchRange>
 {
+    private const int IndicesPerFace = 3;
+
     public required uint MaterialIndex { get; set; }
 
     /// <summary>
-    /// Per-triangle; multiply by 3 to get the index.
+    /// Per-triangle; multiply by 3 to get the vertex index.
     /// </summary>
     public required uint Start { get; set; }
 
     /// <summary>
-    /// Per-triangle; multiply by 3 to get the index.
+    /// Per-triangle; multiply by 3 to get the vertex index.
     /// </summary>
     public required uint Size { get; set; }
 
     public required uint BoneSet { get; set; }
 
-    public ReadOnlySpan<byte> GetSlicedIndexBuffer(IndexBuffer indexBuffer, int indicesPerFace)
+    public int GetVertStartIndex() => (int)Start * IndicesPerFace;
+
+    public int GetVertEndIndex() => GetVertStartIndex() + GetVertCount();
+
+    public int GetVertCount() => (int)Size * IndicesPerFace;
+
+    public override string ToString()
     {
-        return indexBuffer.Data.AsSpan((int)Start * indicesPerFace, (int)Size * indicesPerFace);
+        return $"<BatchRange: Range ({Start}, {Size}); Mat {MaterialIndex}; Set {BoneSet}>";
     }
 
     public static void Serialize(Stream stream, BatchRange value)

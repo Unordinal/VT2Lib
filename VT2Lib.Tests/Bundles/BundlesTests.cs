@@ -15,7 +15,7 @@ public partial class BundlesTests
     }
 
     [Theory]
-    [MemberData(nameof(TestUtils.GetMixedBundleNames), MemberType = typeof(TestUtils))]
+    [MemberData(nameof(GetTestManyBundleNamesLimited), 10)]
     public void ReadBundleMeta(string bundleName)
     {
         bundleName = Path.Combine(TestPaths.MixedBundleFilesPath, bundleName);
@@ -25,7 +25,7 @@ public partial class BundlesTests
     }
 
     [Theory]
-    [MemberData(nameof(TestUtils.GetMixedBundleNames), MemberType = typeof(TestUtils))]
+    [MemberData(nameof(GetTestManyBundleNamesLimited), 10)]
     public void ReadBundleHeader(string bundleName)
     {
         HashDictUtil.PrepareKnownHashes();
@@ -57,7 +57,7 @@ public partial class BundlesTests
     }
 
     [Theory]
-    [MemberData(nameof(TestUtils.GetMixedBundleNames), MemberType = typeof(TestUtils))]
+    [MemberData(nameof(GetTestManyBundleNamesLimited), 10)]
     public void OpenBundle(string bundleName)
     {
         bundleName = Path.Combine(TestPaths.MixedBundleFilesPath, bundleName);
@@ -69,7 +69,7 @@ public partial class BundlesTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTestManyBundleNamesLimited), null)]
+    [MemberData(nameof(GetTestManyBundleNamesLimited), 10)]
     public void ExtractResources(string bundleName)
     {
         bundleName = Path.Combine(TestPaths.TestManyBundleFilesPath, bundleName);

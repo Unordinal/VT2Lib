@@ -10,15 +10,15 @@ public sealed class SkinData
 
     public required uint[][] MatrixIndexSets { get; set; }
 
-    public IEnumerable<(uint NodeIndex, Matrix4x4 InvBindMatrix)> GetJointsBelongingToSet(uint indexSet)
+    public IEnumerable<(uint NodeIndex, Matrix4x4 InvBindMatrix)> GetBonesForSet(uint boneSet)
     {
-        if (indexSet >= MatrixIndexSets.Length)
-            throw new ArgumentOutOfRangeException(nameof(indexSet));
+        if (boneSet >= MatrixIndexSets.Length)
+            throw new ArgumentOutOfRangeException(nameof(boneSet));
 
-        var setIndices = MatrixIndexSets[indexSet];
+        var setIndices = MatrixIndexSets[boneSet];
+
         var nodeIndices = setIndices.Select(idx => NodeIndices[idx]);
         var nodeIBMs = setIndices.Select(idx => InvBindMatrices[idx]);
-
-        return setIndices.Zip(nodeIBMs);
+        return nodeIndices.Zip(nodeIBMs);
     }
 }
