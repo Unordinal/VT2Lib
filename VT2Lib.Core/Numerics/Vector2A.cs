@@ -14,7 +14,7 @@ public static class Vector2A
     public static Vector64<TNum> ToVector64<TNum>(this Vector2A<TNum> value)
         where TNum : unmanaged, IBinaryNumber<TNum>
     {
-        if (Vector64<TNum>.Count != Vector2A<TNum>.Count)
+        if (Vector64<TNum>.Count != Count)
             throw new ArgumentException($"{nameof(Vector64<TNum>)}.Count isn't equal to {nameof(Vector2A<TNum>)}.Count");
 
         return Unsafe.As<Vector2A<TNum>, Vector64<TNum>>(ref Unsafe.AsRef(in value));
@@ -28,7 +28,7 @@ public static class Vector2A
     public static Vector128<TNum> ToVector128<TNum>(this Vector2A<TNum> value)
         where TNum : unmanaged, IBinaryNumber<TNum>
     {
-        if (Vector128<TNum>.Count != Vector2A<TNum>.Count)
+        if (Vector128<TNum>.Count != Count)
             throw new ArgumentException($"{nameof(Vector128<TNum>)}.Count isn't equal to {nameof(Vector2A<TNum>)}.Count");
 
         return Unsafe.As<Vector2A<TNum>, Vector128<TNum>>(ref Unsafe.AsRef(in value));
@@ -49,7 +49,7 @@ public static class Vector2A
     public static Span<TNum> AsSpan<TNum>(this scoped ref readonly Vector2A<TNum> value)
         where TNum : unmanaged, IBinaryNumber<TNum>
     {
-        return MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in value.X), Vector2A<TNum>.Count);
+        return MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in value.X), Count);
     }
 
     public static Vector2 AsVector2(this scoped ref readonly Vector2A<float> value)
@@ -62,7 +62,7 @@ public static class Vector2A
 public struct Vector2A<TNum> : IEquatable<Vector2A<TNum>>, IFormattable
     where TNum : unmanaged, IBinaryNumber<TNum>
 {
-    public const int Count = Vector2A.Count;
+    private const int Count = Vector2A.Count;
 
     public static int Size => Unsafe.SizeOf<TNum>() * Count;
 
