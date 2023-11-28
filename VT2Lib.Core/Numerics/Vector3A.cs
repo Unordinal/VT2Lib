@@ -6,13 +6,36 @@ using System.Runtime.InteropServices;
 
 namespace VT2Lib.Core.Numerics;
 
+public static class Vector3A
+{
+    public const int Count = 3;
+
+    public static TRootNum Length<TRootNum>(this ref readonly Vector3A<TRootNum> value)
+        where TRootNum : unmanaged, IBinaryNumber<TRootNum>, IRootFunctions<TRootNum>
+    {
+        TRootNum lengthSquared = value.LengthSquared();
+        return TRootNum.Sqrt(lengthSquared);
+    }
+
+    public static Span<TNum> AsSpan<TNum>(this scoped ref readonly Vector3A<TNum> value)
+        where TNum : unmanaged, IBinaryNumber<TNum>
+    {
+        return MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in value.X), Count);
+    }
+
+    public static Vector3 AsVector3(this scoped ref readonly Vector3A<float> value)
+    {
+        return Unsafe.ReadUnaligned<Vector3>(ref Unsafe.As<Vector3A<float>, byte>(ref Unsafe.AsRef(in value)));
+    }
+}
+
 [StructLayout(LayoutKind.Sequential)]
 public struct Vector3A<TNum> : IEquatable<Vector3A<TNum>>, IFormattable
     where TNum : unmanaged, IBinaryNumber<TNum>
 {
-    internal static int Size => Unsafe.SizeOf<TNum>() * Count;
+    private const int Count = Vector3A.Count;
 
-    internal static int Count => 3;
+    public static int Size => Unsafe.SizeOf<TNum>() * Count;
 
     public static Vector3A<TNum> Zero { get; } = new(TNum.Zero);
 
@@ -23,6 +46,22 @@ public struct Vector3A<TNum> : IEquatable<Vector3A<TNum>>, IFormattable
     public static Vector3A<TNum> UnitY { get; } = new(TNum.Zero, TNum.One, TNum.Zero);
 
     public static Vector3A<TNum> UnitZ { get; } = new(TNum.Zero, TNum.Zero, TNum.One);
+
+    public TNum this[int index]
+    {
+        readonly get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
+            return Unsafe.Add(ref Unsafe.AsRef(in X), index);
+        }
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
+            Unsafe.Add(ref Unsafe.AsRef(in X), index) = value;
+        }
+    }
 
     /// <summary>
     /// The X component of the vector.
